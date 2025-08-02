@@ -17,6 +17,16 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 • **E2E tests**: `npm run test:e2e` (Playwright)
 • **Database operations**: `npx prisma db push`, `npx prisma studio`
 
+## Claude Code MCP Configuration
+
+This project uses Model Context Protocol (MCP) servers for enhanced development capabilities:
+
+• **Playwright MCP**: Browser automation and testing (@executeautomation/playwright-mcp-server)
+• **Sequential Thinking**: Multi-step problem solving and analysis (@executeautomation/sequential-thinking-mcp)  
+• **Context7**: Up-to-date library documentation retrieval (@context7/mcp-server)
+
+MCP configuration is in `.claude/settings.local.json`. Use these tools for browser automation, complex analysis, and fetching current API documentation.
+
 ## Database & Environment Setup
 
 • Copy `.env.example` to `.env` and configure
@@ -44,6 +54,11 @@ This is a multi-tenant SaaS starter kit built with Next.js, featuring:
 • Payments via Stripe
 • Audit logging via Retraced
 • Email services
+• User analytics via Mixpanel
+• Bot protection via Google reCAPTCHA
+• Internal notifications via Slack
+• Observability via OpenTelemetry
+• Error monitoring via Sentry
 • Internationalization (i18next)
 
 ### Directory Structure
@@ -60,6 +75,23 @@ This is a multi-tenant SaaS starter kit built with Next.js, featuring:
 • `/styles/` - Global CSS and styling
 • `/public/` - Static assets
 • `/locales/` - Internationalization files
+
+### Third-Party Integrations
+
+Complete documentation for all third-party service integrations is available in `/documentation/`:
+
+• NextAuth.js - Authentication with multiple providers
+• Prisma ORM - Database operations and schema management
+• Stripe - Payment processing and subscriptions
+• SAML Jackson - Enterprise SSO and directory sync
+• Svix - Webhook orchestration and events
+• Sentry - Error monitoring and performance tracking
+• Retraced - Audit logging and compliance
+• Mixpanel - User analytics and event tracking
+• Google reCAPTCHA - Bot protection and security
+• Slack - Internal notifications and alerts
+• OpenTelemetry - Observability and metrics
+• Email Services - Transactional email delivery
 
 ### Authentication Architecture
 
@@ -102,6 +134,7 @@ Key entities in Prisma schema:
 • TypeScript is strictly enforced
 • ESLint and Prettier are configured  
 • Playwright E2E tests cover critical user flows
+• Development logs are written to `/logs/dev.log`
 
 ## Performance Profiling
 
@@ -119,3 +152,19 @@ Key entities in Prisma schema:
 • E2E tests use Playwright with fixtures in `/tests/e2e/support/fixtures/`
 • Run `npm run playwright:update` to install Playwright dependencies
 • HTML test reports generated in `/playwright-report/`
+
+## Working with Documentation
+
+When integrating new services or updating existing ones:
+
+1. **Use Context7 MCP** only when:
+   - Documentation file doesn't exist for a service being integrated
+   - Code examples fail due to API changes (deprecated methods, changed parameters)
+   - Environment setup instructions don't work with current service versions
+   - Security practices are flagged as outdated by linters/security tools
+
+2. **Don't use Context7 MCP** for general updates, performance improvements, or stylistic changes
+
+3. **Update integration guides**: Create or update `.md` files in `/documentation/` following existing patterns
+4. **Include security practices**: Always document security considerations and best practices
+5. **Provide code examples**: Include practical implementation examples and common patterns
