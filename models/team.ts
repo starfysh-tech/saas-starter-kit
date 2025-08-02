@@ -1,3 +1,4 @@
+import * as Sentry from '@sentry/nextjs';
 import { prisma } from '@/lib/prisma';
 import { getSession } from '@/lib/session';
 import { findOrCreateApp } from '@/lib/svix';
@@ -12,20 +13,34 @@ export const createTeam = async (param: {
   name: string;
   slug: string;
 }) => {
-  const { userId, name, slug } = param;
-
-  const team = await prisma.team.create({
-    data: {
-      name,
-      slug,
+  return Sentry.startSpan(
+    {
+      op: 'db.create',
+      name: 'Create Team with Member',
     },
-  });
+    async (span) => {
+      const { userId, name, slug } = param;
 
-  await addTeamMember(team.id, userId, Role.OWNER);
+      span.setAttribute('teamName', name);
+      span.setAttribute('teamSlug', slug);
+      span.setAttribute('userId', userId);
 
-  await findOrCreateApp(team.name, team.id);
+      const team = await prisma.team.create({
+        data: {
+          name,
+          slug,
+        },
+      });
 
-  return team;
+      span.setAttribute('teamId', team.id);
+
+      await addTeamMember(team.id, userId, Role.OWNER);
+
+      await findOrCreateApp(team.name, team.id);
+
+      return team;
+    }
+  );
 };
 
 export const getByCustomerId = async (
@@ -148,20 +163,34 @@ Planning Time: 2.566 ms
 Execution Time: 0.322 ms
 */
 export const getTeams = async (userId: string) => {
-  return await prisma.team.findMany({
-    where: {
-      members: {
-        some: {
-          userId,
+  return Sentry.startSpan(
+    {
+      op: 'db.query',
+      name: 'Get User Teams with Member Count',
+    },
+    async (span) => {
+      span.setAttribute('userId', userId);
+
+      const teams = await prisma.team.findMany({
+        where: {
+          members: {
+            some: {
+              userId,
+            },
+          },
         },
-      },
-    },
-    include: {
-      _count: {
-        select: { members: true },
-      },
-    },
-  });
+        include: {
+          _count: {
+            select: { members: true },
+          },
+        },
+      });
+
+      span.setAttribute('teamCount', teams.length);
+
+      return teams;
+    }
+  );
 };
 
 export async function getTeamRoles(userId: string) {
@@ -244,27 +273,39 @@ Planning Time: 0.351 ms
 Execution Time: 0.045 ms
 */
 export const getTeamMembers = async (slug: string) => {
-  const members = await prisma.teamMember.findMany({
-    where: {
-      team: {
-        slug,
-      },
+  return Sentry.startSpan(
+    {
+      op: 'db.query',
+      name: 'Get Team Members with User Data',
     },
-    include: {
-      user: {
-        select: {
-          name: true,
-          email: true,
-          image: true,
-        },
-      },
-    },
-  });
+    async (span) => {
+      span.setAttribute('teamSlug', slug);
 
-  return members?.map((member) => {
-    member.user = normalizeUser(member.user);
-    return member;
-  });
+      const members = await prisma.teamMember.findMany({
+        where: {
+          team: {
+            slug,
+          },
+        },
+        include: {
+          user: {
+            select: {
+              name: true,
+              email: true,
+              image: true,
+            },
+          },
+        },
+      });
+
+      span.setAttribute('memberCount', members.length);
+
+      return members?.map((member) => {
+        member.user = normalizeUser(member.user);
+        return member;
+      });
+    }
+  );
 };
 
 export const updateTeam = async (slug: string, data: Partial<Team>) => {

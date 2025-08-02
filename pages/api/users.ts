@@ -1,3 +1,4 @@
+import * as Sentry from '@sentry/nextjs';
 import { getSession } from '@/lib/session';
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { recordMetric } from '@/lib/metrics';
@@ -23,6 +24,12 @@ export default async function handler(
         });
     }
   } catch (error: any) {
+    Sentry.captureException(error, {
+      tags: {
+        action: req.method?.toLowerCase(),
+        endpoint: 'users',
+      },
+    });
     const message = error.message || 'Something went wrong';
     const status = error.status || 500;
 

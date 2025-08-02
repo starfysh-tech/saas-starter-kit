@@ -6,4 +6,12 @@ Sentry.init({
     process.env.NEXT_PUBLIC_SENTRY_TRACE_SAMPLE_RATE ?? '0.0'
   ),
   debug: false,
+  _experiments: {
+    enableLogs: true,
+  },
+  integrations: [
+    Sentry.consoleLoggingIntegration({
+      levels: ['log', 'error', 'warn'],
+    }),
+  ],
 });

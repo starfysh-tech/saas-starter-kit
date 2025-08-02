@@ -1,3 +1,4 @@
+import * as Sentry from '@sentry/nextjs';
 import type { NextApiRequest, NextApiResponse } from 'next';
 import crypto from 'crypto';
 
@@ -24,6 +25,12 @@ export default async function handler(
 
     res.end();
   } catch (error: any) {
+    Sentry.captureException(error, {
+      tags: {
+        action: 'webhook_handler',
+        endpoint: 'dsync',
+      },
+    });
     console.error(error);
     res.end();
   }

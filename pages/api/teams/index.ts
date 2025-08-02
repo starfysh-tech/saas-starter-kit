@@ -1,3 +1,4 @@
+import * as Sentry from '@sentry/nextjs';
 import { slugify } from '@/lib/server-common';
 import { ApiError } from '@/lib/errors';
 import { createTeam, getTeams, isTeamExists } from 'models/team';
@@ -27,6 +28,12 @@ export default async function handler(
         });
     }
   } catch (error: any) {
+    Sentry.captureException(error, {
+      tags: {
+        action: req.method?.toLowerCase(),
+        endpoint: 'teams',
+      },
+    });
     const message = error.message || 'Something went wrong';
     const status = error.status || 500;
 
@@ -36,32 +43,57 @@ export default async function handler(
 
 // Get teams
 const handleGET = async (req: NextApiRequest, res: NextApiResponse) => {
-  const user = await getCurrentUser(req, res);
-  const teams = await getTeams(user.id);
+  return Sentry.startSpan(
+    {
+      op: 'db.query',
+      name: 'Get User Teams',
+    },
+    async (span) => {
+      const user = await getCurrentUser(req, res);
+      span.setAttribute('userId', user.id);
 
-  recordMetric('team.fetched');
+      const teams = await getTeams(user.id);
+      span.setAttribute('teamCount', teams.length);
 
-  res.status(200).json({ data: teams });
+      recordMetric('team.fetched');
+
+      res.status(200).json({ data: teams });
+    }
+  );
 };
 
 // Create a team
 const handlePOST = async (req: NextApiRequest, res: NextApiResponse) => {
-  const { name } = validateWithSchema(createTeamSchema, req.body);
+  return Sentry.startSpan(
+    {
+      op: 'db.create',
+      name: 'Create Team',
+    },
+    async (span) => {
+      const { name } = validateWithSchema(createTeamSchema, req.body);
 
-  const user = await getCurrentUser(req, res);
-  const slug = slugify(name);
+      const user = await getCurrentUser(req, res);
+      const slug = slugify(name);
 
-  if (await isTeamExists(slug)) {
-    throw new ApiError(400, 'A team with the slug already exists.');
-  }
+      span.setAttribute('teamName', name);
+      span.setAttribute('teamSlug', slug);
+      span.setAttribute('userId', user.id);
 
-  const team = await createTeam({
-    userId: user.id,
-    name,
-    slug,
-  });
+      if (await isTeamExists(slug)) {
+        throw new ApiError(400, 'A team with the slug already exists.');
+      }
 
-  recordMetric('team.created');
+      const team = await createTeam({
+        userId: user.id,
+        name,
+        slug,
+      });
 
-  res.status(200).json({ data: team });
+      span.setAttribute('teamId', team.id);
+
+      recordMetric('team.created');
+
+      res.status(200).json({ data: team });
+    }
+  );
 };
