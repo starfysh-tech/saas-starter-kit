@@ -11,13 +11,17 @@ The SaaS Starter Kit provides a comprehensive REST API built on Next.js with mul
 ## Authentication
 
 ### Session Authentication
+
 For web applications using NextAuth.js sessions:
+
 ```http
 Cookie: next-auth.session-token=...
 ```
 
 ### API Key Authentication
+
 For external integrations and server-to-server communication:
+
 ```http
 Authorization: Bearer sk_test_your_api_key_here
 ```
@@ -25,6 +29,7 @@ Authorization: Bearer sk_test_your_api_key_here
 ### Error Responses
 
 All endpoints return consistent error format:
+
 ```json
 {
   "error": {
@@ -34,6 +39,7 @@ All endpoints return consistent error format:
 ```
 
 **HTTP Status Codes:**
+
 - `200` - Success
 - `201` - Created
 - `204` - No Content
@@ -57,6 +63,7 @@ Create a new user account with team creation or invitation acceptance.
 **Endpoint**: `POST /api/auth/join`
 
 **Request Body**:
+
 ```json
 {
   "name": "string (max 104 chars, required)",
@@ -69,6 +76,7 @@ Create a new user account with team creation or invitation acceptance.
 ```
 
 **Response**: `201 Created`
+
 ```json
 {
   "data": {
@@ -78,6 +86,7 @@ Create a new user account with team creation or invitation acceptance.
 ```
 
 **Example**:
+
 ```bash
 curl -X POST http://localhost:4002/api/auth/join \
   -H "Content-Type: application/json" \
@@ -96,6 +105,7 @@ Initiate password reset process by sending reset email.
 **Endpoint**: `POST /api/auth/forgot-password`
 
 **Request Body**:
+
 ```json
 {
   "email": "string (valid email, required)",
@@ -104,6 +114,7 @@ Initiate password reset process by sending reset email.
 ```
 
 **Response**: `200 OK`
+
 ```json
 {}
 ```
@@ -115,6 +126,7 @@ Complete password reset using token from email.
 **Endpoint**: `POST /api/auth/reset-password`
 
 **Request Body**:
+
 ```json
 {
   "password": "string (min 8 chars, max 70 chars, required)",
@@ -123,6 +135,7 @@ Complete password reset using token from email.
 ```
 
 **Response**: `200 OK`
+
 ```json
 {}
 ```
@@ -135,6 +148,7 @@ Sign out user and clear session.
 **Authentication**: Session required
 
 **Response**: `200 OK`
+
 ```json
 {}
 ```
@@ -146,6 +160,7 @@ Unlock a locked user account using unlock token.
 **Endpoint**: `POST /api/auth/unlock-account`
 
 **Request Body**:
+
 ```json
 {
   "email": "string (required)",
@@ -154,6 +169,7 @@ Unlock a locked user account using unlock token.
 ```
 
 **Response**: `200 OK`
+
 ```json
 {}
 ```
@@ -170,6 +186,7 @@ Get all teams for the authenticated user.
 **Authentication**: Session required
 
 **Response**: `200 OK`
+
 ```json
 {
   "data": [
@@ -193,6 +210,7 @@ Create a new team.
 **Authentication**: Session required
 
 **Request Body**:
+
 ```json
 {
   "name": "string (min 1, max 50 chars, required)"
@@ -200,6 +218,7 @@ Create a new team.
 ```
 
 **Response**: `200 OK`
+
 ```json
 {
   "data": {
@@ -222,9 +241,11 @@ Get details for a specific team.
 **Permissions**: Team member
 
 **Parameters**:
+
 - `slug` (path) - Team slug identifier
 
 **Response**: `200 OK`
+
 ```json
 {
   "data": {
@@ -247,9 +268,11 @@ Update team details.
 **Permissions**: Team Admin or Owner
 
 **Parameters**:
+
 - `slug` (path) - Team slug identifier
 
 **Request Body**:
+
 ```json
 {
   "name": "string (min 1, max 50 chars, optional)",
@@ -259,6 +282,7 @@ Update team details.
 ```
 
 **Response**: `200 OK`
+
 ```json
 {
   "data": {
@@ -281,6 +305,7 @@ Delete a team (if feature enabled).
 **Permissions**: Team Owner only
 
 **Parameters**:
+
 - `slug` (path) - Team slug identifier
 
 **Response**: `204 No Content`
@@ -298,9 +323,11 @@ Get all members of a team.
 **Permissions**: Team member
 
 **Parameters**:
+
 - `slug` (path) - Team slug identifier
 
 **Response**: `200 OK`
+
 ```json
 {
   "data": [
@@ -329,9 +356,11 @@ Update a team member's role.
 **Permissions**: Team Admin or Owner
 
 **Parameters**:
+
 - `slug` (path) - Team slug identifier
 
 **Request Body**:
+
 ```json
 {
   "memberId": "string (required)",
@@ -340,6 +369,7 @@ Update a team member's role.
 ```
 
 **Response**: `200 OK`
+
 ```json
 {
   "data": {
@@ -363,9 +393,11 @@ Remove a member from the team.
 **Permissions**: Team Admin or Owner
 
 **Parameters**:
+
 - `slug` (path) - Team slug identifier
 
 **Request Body**:
+
 ```json
 {
   "memberId": "string (required)"
@@ -373,6 +405,7 @@ Remove a member from the team.
 ```
 
 **Response**: `200 OK`
+
 ```json
 {}
 ```
@@ -390,10 +423,12 @@ Get pending invitations for a team.
 **Permissions**: Team member
 
 **Parameters**:
+
 - `slug` (path) - Team slug identifier
 - `sentViaEmail` (query) - Filter by invitation type: "true", "false", or ""
 
 **Response**: `200 OK`
+
 ```json
 {
   "data": [
@@ -419,9 +454,11 @@ Create a new team invitation.
 **Permissions**: Team Admin or Owner
 
 **Parameters**:
+
 - `slug` (path) - Team slug identifier
 
 **Request Body**:
+
 ```json
 {
   "email": "string (valid email, required if sentViaEmail=true)",
@@ -432,6 +469,7 @@ Create a new team invitation.
 ```
 
 **Response**: `201 Created`
+
 ```json
 {
   "data": {
@@ -454,9 +492,11 @@ Delete a pending invitation.
 **Permissions**: Team Admin or Owner
 
 **Parameters**:
+
 - `slug` (path) - Team slug identifier
 
 **Request Body**:
+
 ```json
 {
   "id": "string (required)"
@@ -464,6 +504,7 @@ Delete a pending invitation.
 ```
 
 **Response**: `200 OK`
+
 ```json
 {}
 ```
@@ -481,9 +522,11 @@ Get all API keys for a team.
 **Permissions**: Team member
 
 **Parameters**:
+
 - `slug` (path) - Team slug identifier
 
 **Response**: `200 OK`
+
 ```json
 {
   "data": [
@@ -507,9 +550,11 @@ Create a new API key for the team.
 **Permissions**: Team Admin or Owner
 
 **Parameters**:
+
 - `slug` (path) - Team slug identifier
 
 **Request Body**:
+
 ```json
 {
   "name": "string (max 50 chars, required)"
@@ -517,6 +562,7 @@ Create a new API key for the team.
 ```
 
 **Response**: `201 Created`
+
 ```json
 {
   "data": {
@@ -542,10 +588,12 @@ Delete an API key.
 **Permissions**: Team Admin or Owner
 
 **Parameters**:
+
 - `slug` (path) - Team slug identifier
 - `apiKeyId` (path) - API key ID
 
 **Response**: `200 OK`
+
 ```json
 {}
 ```
@@ -563,9 +611,11 @@ Get all webhook endpoints for a team.
 **Permissions**: Team member
 
 **Parameters**:
+
 - `slug` (path) - Team slug identifier
 
 **Response**: `200 OK`
+
 ```json
 {
   "data": [
@@ -590,9 +640,11 @@ Create a new webhook endpoint.
 **Permissions**: Team Admin or Owner
 
 **Parameters**:
+
 - `slug` (path) - Team slug identifier
 
 **Request Body**:
+
 ```json
 {
   "name": "string (max 104 chars, required)",
@@ -602,12 +654,14 @@ Create a new webhook endpoint.
 ```
 
 **Available Event Types**:
+
 - `member.created`
 - `member.removed`
 - `invitation.created`
 - `invitation.removed`
 
 **Response**: `200 OK`
+
 ```json
 {
   "data": {
@@ -630,10 +684,12 @@ Update an existing webhook endpoint.
 **Permissions**: Team Admin or Owner
 
 **Parameters**:
+
 - `slug` (path) - Team slug identifier
 - `endpointId` (path) - Webhook endpoint ID
 
 **Request Body**:
+
 ```json
 {
   "name": "string (max 104 chars, required)",
@@ -644,6 +700,7 @@ Update an existing webhook endpoint.
 ```
 
 **Response**: `200 OK`
+
 ```json
 {
   "data": {
@@ -665,10 +722,12 @@ Delete a webhook endpoint.
 **Permissions**: Team Admin or Owner
 
 **Parameters**:
+
 - `slug` (path) - Team slug identifier
 - `webhookId` (query) - Webhook ID to delete
 
 **Response**: `200 OK`
+
 ```json
 {}
 ```
@@ -686,9 +745,11 @@ Get available products and current team subscriptions.
 **Permissions**: Team member
 
 **Parameters**:
+
 - `slug` (path) - Team slug identifier
 
 **Response**: `200 OK`
+
 ```json
 {
   "data": {
@@ -732,9 +793,11 @@ Create a Stripe checkout session for subscription.
 **Permissions**: Team member
 
 **Parameters**:
+
 - `slug` (path) - Team slug identifier
 
 **Request Body**:
+
 ```json
 {
   "price": "string (Stripe price ID, required)",
@@ -743,6 +806,7 @@ Create a Stripe checkout session for subscription.
 ```
 
 **Response**: `200 OK`
+
 ```json
 {
   "data": {
@@ -760,9 +824,11 @@ Create a Stripe customer portal link for subscription management.
 **Permissions**: Team member
 
 **Parameters**:
+
 - `slug` (path) - Team slug identifier
 
 **Response**: `200 OK`
+
 ```json
 {
   "data": {
@@ -783,6 +849,7 @@ Update the authenticated user's profile information.
 **Authentication**: Session required
 
 **Request Body**:
+
 ```json
 {
   "name": "string (max 104 chars, optional)",
@@ -801,6 +868,7 @@ Update the authenticated user's password.
 **Authentication**: Session required
 
 **Request Body**:
+
 ```json
 {
   "currentPassword": "string (min 8 chars, required)",
@@ -809,11 +877,13 @@ Update the authenticated user's password.
 ```
 
 **Response**: `200 OK`
+
 ```json
 {}
 ```
 
 **Notes**:
+
 - Validates current password before update
 - Invalidates all other user sessions
 - Updates password with bcrypt hash
@@ -830,6 +900,7 @@ Get all active sessions for the authenticated user.
 **Authentication**: Session required
 
 **Response**: `200 OK`
+
 ```json
 {
   "data": [
@@ -852,9 +923,11 @@ Delete a specific session (logout from device).
 **Authentication**: Session required
 
 **Parameters**:
+
 - `id` (path) - Session ID
 
 **Response**: `200 OK`
+
 ```json
 {}
 ```
@@ -870,9 +943,11 @@ Get details for a specific invitation token.
 **Endpoint**: `GET /api/invitations/{token}`
 
 **Parameters**:
+
 - `token` (path) - Invitation token
 
 **Response**: `200 OK`
+
 ```json
 {
   "data": {
@@ -897,9 +972,11 @@ Accept a team invitation.
 **Authentication**: Session required
 
 **Parameters**:
+
 - `token` (path) - Invitation token
 
 **Request Body**:
+
 ```json
 {
   "inviteToken": "string (required)"
@@ -907,6 +984,7 @@ Accept a team invitation.
 ```
 
 **Response**: `200 OK`
+
 ```json
 {
   "data": {
@@ -930,6 +1008,7 @@ Check system health and version.
 **Endpoint**: `GET /api/health`
 
 **Response**: `200 OK`
+
 ```json
 {
   "version": "1.0.0"
@@ -943,6 +1022,7 @@ Simple test endpoint.
 **Endpoint**: `GET /api/hello`
 
 **Response**: `200 OK`
+
 ```json
 {
   "message": "Hello from SaaS Starter Kit!"
@@ -961,6 +1041,7 @@ Receive Stripe webhook events for payment processing.
 **Authentication**: Stripe webhook signature
 
 **Supported Events**:
+
 - `customer.subscription.created`
 - `customer.subscription.updated`
 - `customer.subscription.deleted`
@@ -968,6 +1049,7 @@ Receive Stripe webhook events for payment processing.
 - `invoice.payment_failed`
 
 **Response**: `200 OK`
+
 ```json
 {
   "received": true
@@ -982,11 +1064,13 @@ Receive directory sync webhook events from identity providers.
 **Authentication**: Jackson webhook signature
 
 **Supported Events**:
+
 - User provisioning/deprovisioning
 - Group membership changes
 - Profile updates
 
 **Response**: `200 OK`
+
 ```json
 {
   "received": true
@@ -1007,11 +1091,13 @@ SCIM 2.0 endpoint for user management.
 **Methods**: GET, POST, PUT, PATCH, DELETE
 
 **Query Parameters**:
+
 - `count` (number) - Number of results per page
 - `startIndex` (number) - Starting index for pagination
 - `filter` (string) - SCIM filter expression
 
 **Example GET Response**:
+
 ```json
 {
   "schemas": ["urn:ietf:params:scim:api:messages:2.0:ListResponse"],
@@ -1049,6 +1135,7 @@ SCIM 2.0 endpoint for group management.
 **Methods**: GET, POST, PUT, PATCH, DELETE
 
 **Query Parameters**:
+
 - `count` (number) - Number of results per page
 - `startIndex` (number) - Starting index for pagination
 - `filter` (string) - SCIM filter expression
@@ -1064,6 +1151,7 @@ API endpoints have rate limiting applied:
 - **Webhook endpoints**: No rate limiting
 
 Rate limit headers are included in responses:
+
 ```http
 X-RateLimit-Limit: 60
 X-RateLimit-Remaining: 59
@@ -1149,7 +1237,7 @@ class SaasKitClient {
     const response = await fetch(`${this.baseUrl}${endpoint}`, {
       ...options,
       headers: {
-        'Authorization': `Bearer ${this.apiKey}`,
+        Authorization: `Bearer ${this.apiKey}`,
         'Content-Type': 'application/json',
         ...options.headers,
       },

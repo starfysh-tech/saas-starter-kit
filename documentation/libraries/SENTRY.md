@@ -36,7 +36,7 @@ The starter kit includes Sentry for Next.js:
 ### Core Files
 
 - `sentry.client.config.ts` - Client-side Sentry configuration
-- `sentry.server.config.ts` - Server-side Sentry configuration  
+- `sentry.server.config.ts` - Server-side Sentry configuration
 - `sentry.edge.config.ts` - Edge runtime configuration
 - `instrumentation.ts` - Sentry initialization
 - `next.config.js` - Sentry webpack plugin configuration
@@ -45,7 +45,7 @@ The starter kit includes Sentry for Next.js:
 
 ```typescript
 // sentry.client.config.ts
-import * as Sentry from "@sentry/nextjs";
+import * as Sentry from '@sentry/nextjs';
 
 Sentry.init({
   dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
@@ -67,7 +67,7 @@ Sentry.init({
 
 ```typescript
 // sentry.server.config.ts
-import * as Sentry from "@sentry/nextjs";
+import * as Sentry from '@sentry/nextjs';
 
 Sentry.init({
   dsn: process.env.SENTRY_DSN,
@@ -82,6 +82,7 @@ Sentry.init({
 ### Automatic Error Capture
 
 Sentry automatically captures:
+
 - Unhandled exceptions
 - Unhandled promise rejections
 - React component errors
@@ -91,7 +92,7 @@ Sentry automatically captures:
 ### Manual Error Reporting
 
 ```typescript
-import * as Sentry from "@sentry/nextjs";
+import * as Sentry from '@sentry/nextjs';
 
 // Capture exceptions
 try {
@@ -101,12 +102,12 @@ try {
 }
 
 // Capture custom messages
-Sentry.captureMessage("Something unexpected happened", "warning");
+Sentry.captureMessage('Something unexpected happened', 'warning');
 
 // Add context before capturing
-Sentry.setTag("section", "billing");
-Sentry.setContext("operation", {
-  type: "subscription_update",
+Sentry.setTag('section', 'billing');
+Sentry.setContext('operation', {
+  type: 'subscription_update',
   userId: user.id,
 });
 Sentry.captureException(error);
@@ -132,35 +133,37 @@ Sentry.setUser(null);
 ### Custom Spans
 
 ```typescript
-import { startSpan } from "@sentry/nextjs";
+import { startSpan } from '@sentry/nextjs';
 
 // API route performance tracking
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
   const result = await startSpan(
-    { 
-      name: "api.teams.create",
-      op: "http.server",
+    {
+      name: 'api.teams.create',
+      op: 'http.server',
       attributes: {
-        "http.method": req.method,
-        "http.url": req.url,
-      }
+        'http.method': req.method,
+        'http.url': req.url,
+      },
     },
     async (span) => {
       // Database operation tracking
-      const team = await startSpan(
-        { name: "db.team.create", op: "db" },
-        () => createTeam(data)
+      const team = await startSpan({ name: 'db.team.create', op: 'db' }, () =>
+        createTeam(data)
       );
-      
+
       span.setAttributes({
-        "team.id": team.id,
-        "user.id": userId,
+        'team.id': team.id,
+        'user.id': userId,
       });
-      
+
       return team;
     }
   );
-  
+
   res.json(result);
 }
 ```
@@ -170,11 +173,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 ```typescript
 // Track Prisma operations
 const user = await startSpan(
-  { name: "db.user.findUnique", op: "db.query" },
-  () => prisma.user.findUnique({
-    where: { id: userId },
-    include: { teams: true }
-  })
+  { name: 'db.user.findUnique', op: 'db.query' },
+  () =>
+    prisma.user.findUnique({
+      where: { id: userId },
+      include: { teams: true },
+    })
 );
 ```
 
@@ -183,18 +187,19 @@ const user = await startSpan(
 ```typescript
 // Track third-party API calls
 const stripeCustomer = await startSpan(
-  { 
-    name: "stripe.customer.create",
-    op: "http.client",
+  {
+    name: 'stripe.customer.create',
+    op: 'http.client',
     attributes: {
-      "stripe.resource": "customer",
-      "stripe.operation": "create",
-    }
+      'stripe.resource': 'customer',
+      'stripe.operation': 'create',
+    },
   },
-  () => stripe.customers.create({
-    email: user.email,
-    name: user.name,
-  })
+  () =>
+    stripe.customers.create({
+      email: user.email,
+      name: user.name,
+    })
 );
 ```
 
@@ -223,8 +228,8 @@ Sentry.init({
 
 ```typescript
 // Mask sensitive elements
-<input 
-  type="password" 
+<input
+  type="password"
   className="sentry-mask" // Automatically masked
 />
 
@@ -240,25 +245,22 @@ Sentry.init({
 
 ```javascript
 // next.config.js
-const { withSentryConfig } = require("@sentry/nextjs");
+const { withSentryConfig } = require('@sentry/nextjs');
 
-module.exports = withSentryConfig(
-  nextConfig,
-  {
-    org: process.env.SENTRY_ORG,
-    project: process.env.SENTRY_PROJECT,
-    authToken: process.env.SENTRY_AUTH_TOKEN,
-    
-    // Upload source maps
-    silent: true,
-    widenClientFileUpload: true,
-    hideSourceMaps: true,
-    disableLogger: true,
-    
-    // Automatically create releases
-    automaticVercelMonitors: true,
-  }
-);
+module.exports = withSentryConfig(nextConfig, {
+  org: process.env.SENTRY_ORG,
+  project: process.env.SENTRY_PROJECT,
+  authToken: process.env.SENTRY_AUTH_TOKEN,
+
+  // Upload source maps
+  silent: true,
+  widenClientFileUpload: true,
+  hideSourceMaps: true,
+  disableLogger: true,
+
+  // Automatically create releases
+  automaticVercelMonitors: true,
+});
 ```
 
 ### Manual Release Configuration
@@ -266,7 +268,7 @@ module.exports = withSentryConfig(
 ```typescript
 // Set release information
 Sentry.init({
-  release: process.env.VERCEL_GIT_COMMIT_SHA || "development",
+  release: process.env.VERCEL_GIT_COMMIT_SHA || 'development',
   environment: process.env.VERCEL_ENV || process.env.NODE_ENV,
 });
 ```
@@ -278,9 +280,9 @@ Sentry.init({
 ```typescript
 // Set team context for multi-tenant error tracking
 export const setTeamContext = (team: Team) => {
-  Sentry.setTag("team.id", team.id);
-  Sentry.setTag("team.slug", team.slug);
-  Sentry.setContext("team", {
+  Sentry.setTag('team.id', team.id);
+  Sentry.setTag('team.slug', team.slug);
+  Sentry.setContext('team', {
     id: team.id,
     name: team.name,
     plan: team.subscription?.plan,
@@ -290,9 +292,9 @@ export const setTeamContext = (team: Team) => {
 
 // Clear team context
 export const clearTeamContext = () => {
-  Sentry.setTag("team.id", null);
-  Sentry.setTag("team.slug", null);
-  Sentry.setContext("team", null);
+  Sentry.setTag('team.id', null);
+  Sentry.setTag('team.slug', null);
+  Sentry.setContext('team', null);
 };
 ```
 
@@ -302,13 +304,13 @@ export const clearTeamContext = () => {
 // middleware.ts - Add request context
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  
+
   // Set request context
-  Sentry.setTag("route", pathname);
-  Sentry.setContext("request", {
+  Sentry.setTag('route', pathname);
+  Sentry.setContext('request', {
     url: request.url,
     method: request.method,
-    userAgent: request.headers.get("user-agent"),
+    userAgent: request.headers.get('user-agent'),
   });
 }
 ```
@@ -318,6 +320,7 @@ export function middleware(request: NextRequest) {
 ### Error Rate Alerts
 
 Set up alerts in Sentry dashboard for:
+
 - Error rate exceeding threshold (e.g., >1% in 5 minutes)
 - New issue types detected
 - Performance degradation (p95 response time > 2s)
@@ -327,29 +330,29 @@ Set up alerts in Sentry dashboard for:
 
 ```typescript
 // Track business metrics
-import { metrics } from "@sentry/nextjs";
+import { metrics } from '@sentry/nextjs';
 
 // User signup tracking
-metrics.increment("user.signup", 1, {
-  tags: { 
+metrics.increment('user.signup', 1, {
+  tags: {
     plan: subscription.plan,
-    source: "website" 
-  }
+    source: 'website',
+  },
 });
 
 // Active users gauge
-metrics.gauge("users.active", activeUserCount, {
-  tags: { 
-    team: team.id 
-  }
+metrics.gauge('users.active', activeUserCount, {
+  tags: {
+    team: team.id,
+  },
 });
 
 // Revenue tracking
-metrics.distribution("revenue.mrr", monthlyRevenue, {
-  unit: "dollar",
-  tags: { 
-    currency: "USD" 
-  }
+metrics.distribution('revenue.mrr', monthlyRevenue, {
+  unit: 'dollar',
+  tags: {
+    currency: 'USD',
+  },
 });
 ```
 
@@ -366,7 +369,7 @@ Sentry.init({
       delete event.request.headers.authorization;
       delete event.request.headers.cookie;
     }
-    
+
     // Filter sensitive form data
     if (event.request?.data) {
       const data = event.request.data;
@@ -376,12 +379,15 @@ Sentry.init({
         delete data.ssn;
       }
     }
-    
+
     // Skip development errors in production
-    if (process.env.NODE_ENV === 'production' && hint.originalException?.message?.includes('dev-only')) {
+    if (
+      process.env.NODE_ENV === 'production' &&
+      hint.originalException?.message?.includes('dev-only')
+    ) {
       return null;
     }
-    
+
     return event;
   },
 });
@@ -394,8 +400,8 @@ Sentry.init({
 Sentry.init({
   sendDefaultPii: false, // Don't automatically capture user IP, etc.
   initialScope: {
-    tags: { 
-      component: "saas-app" 
+    tags: {
+      component: 'saas-app',
     },
   },
 });
@@ -430,9 +436,9 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
   if (process.env.NODE_ENV === 'production') {
     return res.status(404).json({ error: 'Not found' });
   }
-  
-  Sentry.captureMessage("Test message from API", "info");
-  throw new Error("Test error for Sentry");
+
+  Sentry.captureMessage('Test message from API', 'info');
+  throw new Error('Test error for Sentry');
 }
 ```
 
@@ -449,6 +455,7 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
 ### Custom Dashboards
 
 Create dashboards to monitor:
+
 - Team-specific error rates
 - Feature adoption metrics
 - Performance by geographical region
@@ -459,16 +466,19 @@ Create dashboards to monitor:
 ### Common Issues
 
 **Source Maps Not Working**
+
 - Verify `SENTRY_AUTH_TOKEN` is set
 - Check organization and project names
 - Ensure source map upload in build process
 
 **High Error Volume**
+
 - Implement error sampling for noisy errors
 - Filter out bot traffic and known issues
 - Set up proper error boundaries in React
 
 **Performance Overhead**
+
 - Reduce trace sample rate in production
 - Disable session replay for high-traffic routes
 - Use conditional instrumentation
@@ -479,16 +489,17 @@ Create dashboards to monitor:
 // Check Sentry connectivity
 export const checkSentryHealth = async () => {
   try {
-    Sentry.captureMessage("Health check", "info");
+    Sentry.captureMessage('Health check', 'info');
     return true;
   } catch (error) {
-    console.error("Sentry health check failed:", error);
+    console.error('Sentry health check failed:', error);
     return false;
   }
 };
 ```
 
 ## Related Files
+
 - `sentry.client.config.ts:1` - Client-side configuration
 - `sentry.server.config.ts:1` - Server-side configuration
 - `instrumentation.ts:1` - Sentry initialization

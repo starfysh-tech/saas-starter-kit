@@ -45,14 +45,14 @@ mindmap
 
 ### Response Time Requirements
 
-| Operation Type | Target Response Time | Maximum Acceptable |
-|---------------|---------------------|-------------------|
-| Page Load (First Paint) | < 1.5 seconds | < 3 seconds |
-| API Calls (CRUD) | < 500ms | < 2 seconds |
-| Database Queries | < 100ms | < 500ms |
-| Authentication | < 1 second | < 3 seconds |
-| File Uploads | < 5 seconds | < 15 seconds |
-| Report Generation | < 10 seconds | < 30 seconds |
+| Operation Type          | Target Response Time | Maximum Acceptable |
+| ----------------------- | -------------------- | ------------------ |
+| Page Load (First Paint) | < 1.5 seconds        | < 3 seconds        |
+| API Calls (CRUD)        | < 500ms              | < 2 seconds        |
+| Database Queries        | < 100ms              | < 500ms            |
+| Authentication          | < 1 second           | < 3 seconds        |
+| File Uploads            | < 5 seconds          | < 15 seconds       |
+| Report Generation       | < 10 seconds         | < 30 seconds       |
 
 ### Performance Implementation
 
@@ -110,7 +110,7 @@ export function withPerformanceMonitoring(handler: Function) {
   return async (req: NextApiRequest, res: NextApiResponse) => {
     const startTime = performance.now();
     const startMemory = process.memoryUsage();
-    
+
     let databaseTime = 0;
     let externalApiTime = 0;
 
@@ -122,7 +122,7 @@ export function withPerformanceMonitoring(handler: Function) {
         const result = await target.apply(thisArg, args);
         databaseTime += performance.now() - dbStart;
         return result;
-      }
+      },
     });
 
     try {
@@ -130,7 +130,7 @@ export function withPerformanceMonitoring(handler: Function) {
     } finally {
       const endTime = performance.now();
       const endMemory = process.memoryUsage();
-      
+
       const metrics: PerformanceMetrics = {
         requestDuration: endTime - startTime,
         databaseTime,
@@ -140,8 +140,8 @@ export function withPerformanceMonitoring(handler: Function) {
           heapUsed: endMemory.heapUsed - startMemory.heapUsed,
           heapTotal: endMemory.heapTotal - startMemory.heapTotal,
           external: endMemory.external - startMemory.external,
-          arrayBuffers: endMemory.arrayBuffers - startMemory.arrayBuffers
-        }
+          arrayBuffers: endMemory.arrayBuffers - startMemory.arrayBuffers,
+        },
       };
 
       // Log slow requests
@@ -149,7 +149,7 @@ export function withPerformanceMonitoring(handler: Function) {
         console.warn('Slow API request detected', {
           path: req.url,
           method: req.method,
-          metrics
+          metrics,
         });
       }
 
@@ -168,8 +168,8 @@ async function sendMetrics(endpoint: string, metrics: PerformanceMetrics) {
         body: JSON.stringify({
           endpoint,
           timestamp: new Date().toISOString(),
-          ...metrics
-        })
+          ...metrics,
+        }),
       });
     } catch (error) {
       console.error('Failed to send metrics:', error);
@@ -190,13 +190,13 @@ export const prisma = new PrismaClient({
     { level: 'query', emit: 'event' },
     { level: 'info', emit: 'stdout' },
     { level: 'warn', emit: 'stdout' },
-    { level: 'error', emit: 'stdout' }
+    { level: 'error', emit: 'stdout' },
   ],
   datasources: {
     db: {
-      url: process.env.DATABASE_URL
-    }
-  }
+      url: process.env.DATABASE_URL,
+    },
+  },
 });
 
 // Query performance monitoring
@@ -205,7 +205,7 @@ prisma.$on('query', (e) => {
     console.warn('Slow database query', {
       query: e.query,
       params: e.params,
-      duration: `${e.duration}ms`
+      duration: `${e.duration}ms`,
     });
   }
 });
@@ -223,19 +223,19 @@ export class TeamRepository {
                 id: true,
                 name: true,
                 email: true,
-                image: true
-              }
-            }
+                image: true,
+              },
+            },
           },
-          orderBy: { createdAt: 'asc' }
+          orderBy: { createdAt: 'asc' },
         },
         _count: {
           select: {
             apiKeys: true,
-            webhooks: true
-          }
-        }
-      }
+            webhooks: true,
+          },
+        },
+      },
     });
   }
 
@@ -248,13 +248,13 @@ export class TeamRepository {
             id: true,
             name: true,
             slug: true,
-            features: true
-          }
-        }
+            features: true,
+          },
+        },
       },
       orderBy: {
-        team: { name: 'asc' }
-      }
+        team: { name: 'asc' },
+      },
     });
   }
 }
@@ -301,7 +301,7 @@ interface CacheOptions {
 
 export class CacheManager {
   private static instance: CacheManager;
-  
+
   static getInstance(): CacheManager {
     if (!this.instance) {
       this.instance = new CacheManager();
@@ -319,10 +319,14 @@ export class CacheManager {
     }
   }
 
-  async set<T>(key: string, value: T, options: CacheOptions = {}): Promise<void> {
+  async set<T>(
+    key: string,
+    value: T,
+    options: CacheOptions = {}
+  ): Promise<void> {
     try {
       const serialized = JSON.stringify(value);
-      
+
       if (options.ttl) {
         await redis.setex(key, options.ttl, serialized);
       } else {
@@ -369,7 +373,7 @@ export function withCache<T>(
 ): Promise<T> {
   return async function (): Promise<T> {
     const cache = CacheManager.getInstance();
-    
+
     // Try to get from cache first
     const cached = await cache.get<T>(cacheKey);
     if (cached !== null) {
@@ -378,11 +382,11 @@ export function withCache<T>(
 
     // Fetch fresh data
     const data = await fetcher();
-    
+
     // Store in cache
     await cache.set(cacheKey, data, {
       ttl: options.ttl || 300, // Default 5 minutes
-      tags: options.tags
+      tags: options.tags,
     });
 
     return data;
@@ -396,7 +400,7 @@ export async function getTeamWithCache(slug: string) {
     () => TeamRepository.findTeamWithMembers(slug),
     {
       ttl: 300, // 5 minutes
-      tags: [`team:${slug}`, 'teams']
+      tags: [`team:${slug}`, 'teams'],
     }
   )();
 }
@@ -407,10 +411,10 @@ export async function getTeamWithCache(slug: string) {
 ### Availability Requirements
 
 | Service Level | Target Uptime | Downtime/Year | Downtime/Month |
-|--------------|---------------|---------------|----------------|
-| Production | 99.9% | 8.77 hours | 43.83 minutes |
-| Enterprise | 99.95% | 4.38 hours | 21.91 minutes |
-| Critical | 99.99% | 52.6 minutes | 4.38 minutes |
+| ------------- | ------------- | ------------- | -------------- |
+| Production    | 99.9%         | 8.77 hours    | 43.83 minutes  |
+| Enterprise    | 99.95%        | 4.38 hours    | 21.91 minutes  |
+| Critical      | 99.99%        | 52.6 minutes  | 4.38 minutes   |
 
 ### Error Handling Strategy
 
@@ -451,7 +455,11 @@ export class AuthorizationError extends AppError {
 }
 
 // Global error handler
-export function handleGlobalError(error: Error, req: NextApiRequest, res: NextApiResponse) {
+export function handleGlobalError(
+  error: Error,
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
   // Log error with context
   console.error('API Error:', {
     error: error.message,
@@ -459,7 +467,7 @@ export function handleGlobalError(error: Error, req: NextApiRequest, res: NextAp
     url: req.url,
     method: req.method,
     userAgent: req.headers['user-agent'],
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
   });
 
   // Send to monitoring service
@@ -471,7 +479,7 @@ export function handleGlobalError(error: Error, req: NextApiRequest, res: NextAp
   if (error instanceof AppError) {
     return res.status(error.statusCode).json({
       error: error.message,
-      code: error.code
+      code: error.code,
     });
   }
 
@@ -479,14 +487,14 @@ export function handleGlobalError(error: Error, req: NextApiRequest, res: NextAp
   if (error.code === 'P2002') {
     return res.status(409).json({
       error: 'Unique constraint violation',
-      code: 'DUPLICATE_ENTRY'
+      code: 'DUPLICATE_ENTRY',
     });
   }
 
   // Default error response
   res.status(500).json({
     error: 'Internal server error',
-    code: 'INTERNAL_ERROR'
+    code: 'INTERNAL_ERROR',
   });
 }
 ```
@@ -498,7 +506,7 @@ export function handleGlobalError(error: Error, req: NextApiRequest, res: NextAp
 export enum CircuitState {
   CLOSED = 'CLOSED',
   OPEN = 'OPEN',
-  HALF_OPEN = 'HALF_OPEN'
+  HALF_OPEN = 'HALF_OPEN',
 }
 
 interface CircuitBreakerConfig {
@@ -561,15 +569,18 @@ export class ExternalServiceClient {
     this.circuitBreaker = new CircuitBreaker({
       failureThreshold: 5,
       resetTimeout: 60000, // 1 minute
-      monitoringPeriod: 30000 // 30 seconds
+      monitoringPeriod: 30000, // 30 seconds
     });
   }
 
-  async makeRequest<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
+  async makeRequest<T>(
+    endpoint: string,
+    options: RequestInit = {}
+  ): Promise<T> {
     return await this.circuitBreaker.execute(async () => {
       const response = await fetch(`${this.baseUrl}${endpoint}`, {
         timeout: 10000, // 10 second timeout
-        ...options
+        ...options,
       });
 
       if (!response.ok) {
@@ -588,11 +599,14 @@ export class ExternalServiceClient {
 // lib/health-check.ts
 export interface HealthCheckResult {
   status: 'healthy' | 'unhealthy' | 'degraded';
-  checks: Record<string, {
-    status: 'pass' | 'fail' | 'warn';
-    time: string;
-    output?: string;
-  }>;
+  checks: Record<
+    string,
+    {
+      status: 'pass' | 'fail' | 'warn';
+      time: string;
+      output?: string;
+    }
+  >;
   version: string;
   uptime: number;
   timestamp: string;
@@ -609,13 +623,13 @@ export class HealthChecker {
       await prisma.$queryRaw`SELECT 1`;
       checks.database = {
         status: 'pass',
-        time: `${Date.now() - start}ms`
+        time: `${Date.now() - start}ms`,
       };
     } catch (error) {
       checks.database = {
         status: 'fail',
         time: '0ms',
-        output: error.message
+        output: error.message,
       };
       overallStatus = 'unhealthy';
     }
@@ -626,13 +640,13 @@ export class HealthChecker {
       await redis.ping();
       checks.redis = {
         status: 'pass',
-        time: `${Date.now() - start}ms`
+        time: `${Date.now() - start}ms`,
       };
     } catch (error) {
       checks.redis = {
         status: 'warn',
         time: '0ms',
-        output: error.message
+        output: error.message,
       };
       if (overallStatus === 'healthy') {
         overallStatus = 'degraded';
@@ -642,28 +656,28 @@ export class HealthChecker {
     // External services health check
     const externalServices = [
       { name: 'stripe', url: 'https://api.stripe.com/v1' },
-      { name: 'sentry', url: process.env.SENTRY_DSN }
+      { name: 'sentry', url: process.env.SENTRY_DSN },
     ];
 
     for (const service of externalServices) {
       if (!service.url) continue;
-      
+
       try {
         const start = Date.now();
-        const response = await fetch(service.url, { 
+        const response = await fetch(service.url, {
           method: 'HEAD',
-          timeout: 5000 
+          timeout: 5000,
         });
-        
+
         checks[service.name] = {
           status: response.ok ? 'pass' : 'warn',
-          time: `${Date.now() - start}ms`
+          time: `${Date.now() - start}ms`,
         };
       } catch (error) {
         checks[service.name] = {
           status: 'warn',
           time: '0ms',
-          output: error.message
+          output: error.message,
         };
         if (overallStatus === 'healthy') {
           overallStatus = 'degraded';
@@ -676,20 +690,27 @@ export class HealthChecker {
       checks,
       version: process.env.npm_package_version || 'unknown',
       uptime: process.uptime(),
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     };
   }
 }
 
 // Health check API endpoint
 // pages/api/health.ts
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
   const healthChecker = new HealthChecker();
   const result = await healthChecker.performHealthCheck();
-  
-  const statusCode = result.status === 'healthy' ? 200 : 
-                    result.status === 'degraded' ? 200 : 503;
-  
+
+  const statusCode =
+    result.status === 'healthy'
+      ? 200
+      : result.status === 'degraded'
+        ? 200
+        : 503;
+
   res.status(statusCode).json(result);
 }
 ```
@@ -710,7 +731,7 @@ export interface ScalingMetrics {
 
 export class AutoScaler {
   private static instance: AutoScaler;
-  
+
   static getInstance(): AutoScaler {
     if (!this.instance) {
       this.instance = new AutoScaler();
@@ -720,13 +741,13 @@ export class AutoScaler {
 
   async getMetrics(): Promise<ScalingMetrics> {
     const memUsage = process.memoryUsage();
-    
+
     return {
       cpuUsage: await this.getCpuUsage(),
       memoryUsage: (memUsage.heapUsed / memUsage.heapTotal) * 100,
       activeConnections: await this.getActiveConnections(),
       requestsPerSecond: await this.getRequestRate(),
-      averageResponseTime: await this.getAverageResponseTime()
+      averageResponseTime: await this.getAverageResponseTime(),
     };
   }
 
@@ -739,11 +760,11 @@ export class AutoScaler {
     if (metrics.cpuUsage > 80) {
       return { scale: true, direction: 'up', reason: 'High CPU usage' };
     }
-    
+
     if (metrics.memoryUsage > 85) {
       return { scale: true, direction: 'up', reason: 'High memory usage' };
     }
-    
+
     if (metrics.averageResponseTime > 2000) {
       return { scale: true, direction: 'up', reason: 'High response time' };
     }
@@ -753,7 +774,11 @@ export class AutoScaler {
       return { scale: true, direction: 'down', reason: 'Low resource usage' };
     }
 
-    return { scale: false, direction: 'up', reason: 'Metrics within normal range' };
+    return {
+      scale: false,
+      direction: 'up',
+      reason: 'Metrics within normal range',
+    };
   }
 
   private async getCpuUsage(): Promise<number> {
@@ -796,7 +821,7 @@ export class DatabaseScaler {
     if (this.readReplicas.length === 0) {
       return this.writeConnection;
     }
-    
+
     // Round-robin selection
     const index = Math.floor(Math.random() * this.readReplicas.length);
     return this.readReplicas[index];
@@ -810,7 +835,7 @@ export class DatabaseScaler {
     // Use read replica for read operations
     const originalUrl = process.env.DATABASE_URL;
     process.env.DATABASE_URL = this.getReadConnection();
-    
+
     try {
       return await query();
     } finally {
@@ -861,13 +886,17 @@ export class CodeQualityAnalyzer {
     const coverage = await this.getTestCoverage();
     const complexity = await this.getCyclomaticComplexity();
     const duplication = await this.getDuplication();
-    
+
     return {
       testCoverage: coverage,
       cyclomaticComplexity: complexity,
       duplicatedLines: duplication,
-      maintainabilityIndex: this.calculateMaintainabilityIndex(coverage, complexity, duplication),
-      technicalDebt: this.assessTechnicalDebt()
+      maintainabilityIndex: this.calculateMaintainabilityIndex(
+        coverage,
+        complexity,
+        duplication
+      ),
+      technicalDebt: this.assessTechnicalDebt(),
     };
   }
 
@@ -892,7 +921,15 @@ export class CodeQualityAnalyzer {
     duplication: number
   ): number {
     // Microsoft's maintainability index formula (simplified)
-    return Math.max(0, (171 - 5.2 * Math.log(complexity) - 0.23 * coverage - 16.2 * Math.log(duplication + 1)) * 100 / 171);
+    return Math.max(
+      0,
+      ((171 -
+        5.2 * Math.log(complexity) -
+        0.23 * coverage -
+        16.2 * Math.log(duplication + 1)) *
+        100) /
+        171
+    );
   }
 
   private assessTechnicalDebt(): string {
@@ -913,20 +950,26 @@ const tracer = trace.getTracer('saas-starter-kit');
 
 // Custom metrics
 export const requestCounter = meter.createCounter('http_requests_total', {
-  description: 'Total number of HTTP requests'
+  description: 'Total number of HTTP requests',
 });
 
-export const requestDuration = meter.createHistogram('http_request_duration_ms', {
-  description: 'Duration of HTTP requests in milliseconds'
-});
+export const requestDuration = meter.createHistogram(
+  'http_request_duration_ms',
+  {
+    description: 'Duration of HTTP requests in milliseconds',
+  }
+);
 
 export const activeUsers = meter.createUpDownCounter('active_users', {
-  description: 'Number of active users'
+  description: 'Number of active users',
 });
 
-export const databaseConnections = meter.createUpDownCounter('database_connections', {
-  description: 'Number of active database connections'
-});
+export const databaseConnections = meter.createUpDownCounter(
+  'database_connections',
+  {
+    description: 'Number of active database connections',
+  }
+);
 
 // Distributed tracing
 export function withTracing<T>(
@@ -941,7 +984,7 @@ export function withTracing<T>(
     } catch (error) {
       span.setStatus({
         code: trace.SpanStatusCode.ERROR,
-        message: error.message
+        message: error.message,
       });
       throw error;
     } finally {
@@ -954,11 +997,11 @@ export function withTracing<T>(
 export function withMetrics(handler: Function) {
   return async (req: NextApiRequest, res: NextApiResponse) => {
     const startTime = Date.now();
-    
+
     // Increment request counter
     requestCounter.add(1, {
       method: req.method!,
-      route: req.url!
+      route: req.url!,
     });
 
     try {
@@ -969,7 +1012,7 @@ export function withMetrics(handler: Function) {
       requestDuration.record(duration, {
         method: req.method!,
         route: req.url!,
-        status_code: res.statusCode.toString()
+        status_code: res.statusCode.toString(),
       });
     }
   };
@@ -980,7 +1023,7 @@ export class BusinessMetrics {
   static async trackUserSignup(userId: string, teamId: string) {
     const signupCounter = meter.createCounter('user_signups_total');
     signupCounter.add(1, {
-      team_id: teamId
+      team_id: teamId,
     });
   }
 
@@ -988,22 +1031,26 @@ export class BusinessMetrics {
     const featureCounter = meter.createCounter('feature_usage_total');
     featureCounter.add(1, {
       feature,
-      team_id: teamId
+      team_id: teamId,
     });
   }
 
-  static async trackBillingEvent(event: string, amount: number, teamId: string) {
+  static async trackBillingEvent(
+    event: string,
+    amount: number,
+    teamId: string
+  ) {
     const billingCounter = meter.createCounter('billing_events_total');
     const revenueGauge = meter.createUpDownCounter('revenue_total');
-    
+
     billingCounter.add(1, {
       event,
-      team_id: teamId
+      team_id: teamId,
     });
-    
+
     if (event === 'payment_succeeded') {
       revenueGauge.add(amount, {
-        team_id: teamId
+        team_id: teamId,
       });
     }
   }
@@ -1029,18 +1076,20 @@ describe('TeamService', () => {
       const teamData = {
         name: 'Test Team',
         slug: 'test-team',
-        ownerId: 'user-123'
+        ownerId: 'user-123',
       };
 
       prismaMock.team.create.mockResolvedValue({
         id: 'team-123',
         ...teamData,
-        members: [{
-          id: 'member-123',
-          userId: 'user-123',
-          teamId: 'team-123',
-          role: 'OWNER'
-        }]
+        members: [
+          {
+            id: 'member-123',
+            userId: 'user-123',
+            teamId: 'team-123',
+            role: 'OWNER',
+          },
+        ],
       });
 
       const result = await TeamService.createTeam(teamData);
@@ -1050,8 +1099,8 @@ describe('TeamService', () => {
       expect(prismaMock.team.create).toHaveBeenCalledWith({
         data: expect.objectContaining({
           name: teamData.name,
-          slug: teamData.slug
-        })
+          slug: teamData.slug,
+        }),
       });
     });
   });
@@ -1070,30 +1119,30 @@ async function runLoadTest() {
     connections: 100,
     duration: 30, // 30 seconds
     headers: {
-      'Authorization': 'Bearer test-api-key'
+      Authorization: 'Bearer test-api-key',
     },
     requests: [
       {
         method: 'GET',
-        path: '/api/teams/test-team'
+        path: '/api/teams/test-team',
       },
       {
         method: 'GET',
-        path: '/api/teams/test-team/members'
+        path: '/api/teams/test-team/members',
       },
       {
         method: 'POST',
         path: '/api/teams/test-team/api-keys',
         body: JSON.stringify({ name: 'Load Test Key' }),
         headers: {
-          'Content-Type': 'application/json'
-        }
-      }
-    ]
+          'Content-Type': 'application/json',
+        },
+      },
+    ],
   });
 
   console.log('Load test results:', result);
-  
+
   // Assert performance requirements
   expect(result.latency.average).toBeLessThan(500); // < 500ms average
   expect(result.latency.p99).toBeLessThan(2000); // < 2s p99

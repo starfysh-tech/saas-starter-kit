@@ -61,13 +61,15 @@ export const sendAudit = async (request: Request) => {
   const event: Event = {
     action,
     crud,
-    group: team ? {
-      id: team.id,
-      name: team.name,
-    } : {
-      id: user.id,
-      name: user.name as string,
-    },
+    group: team
+      ? {
+          id: team.id,
+          name: team.name,
+        }
+      : {
+          id: user.id,
+          name: user.name as string,
+        },
     actor: {
       id: user.id,
       name: user.name as string,

@@ -6,6 +6,7 @@ Conduct comprehensive UX review and optimization:
 4. **Assess design consistency** with established patterns
 
 Focus areas:
+
 - Visual hierarchy and information architecture
 - Responsive design across devices
 - Loading states and error handling
@@ -13,6 +14,7 @@ Focus areas:
 - Cognitive load and user mental models
 
 Output format:
+
 - Executive summary of key findings
 - Prioritized recommendations (high/medium/low)
 - Specific implementation guidance
@@ -20,6 +22,7 @@ Output format:
 - Quick wins vs long-term improvements
 
 Use when:
+
 - Features need UX optimization
 - Accessibility issues identified
 - User experience problems reported

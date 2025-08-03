@@ -128,7 +128,7 @@ interface AuditRequest {
 // Generate token for audit log viewer
 export const getViewerToken = async (groupId: string, actorId: string) => {
   const retracedClient = getRetracedClient();
-  
+
   if (!retracedClient) return;
 
   try {
@@ -151,7 +151,7 @@ const event: Event = {
   action,
   crud,
   group: {
-    id: team.id,      // Team isolation
+    id: team.id, // Team isolation
     name: team.name,
   },
   actor: {
@@ -210,6 +210,7 @@ export default function AuditLogsPage() {
 ### Event Naming Convention
 
 Events use a consistent `verb.noun.action` format:
+
 - `member.invitation.create`
 - `sso.connection.delete`
 - `webhook.update`
@@ -220,7 +221,7 @@ Events use a consistent `verb.noun.action` format:
 // Graceful degradation if Retraced unavailable
 export const sendAudit = async (request: Request) => {
   const retracedClient = getRetracedClient();
-  
+
   if (!retracedClient) {
     // Continue without audit logging if service unavailable
     return;
@@ -230,7 +231,7 @@ export const sendAudit = async (request: Request) => {
     const event: Event = {
       // ... event structure
     };
-    
+
     return await retracedClient.reportEvent(event);
   } catch (error) {
     console.error('Audit logging failed:', error);
@@ -253,10 +254,9 @@ const getRetracedClient = () => {
 };
 
 // Dynamic import for UI component (reduces bundle size)
-const RetracedEventsBrowser = dynamic(
-  () => import('@retracedhq/logs-viewer'),
-  { ssr: false }
-);
+const RetracedEventsBrowser = dynamic(() => import('@retracedhq/logs-viewer'), {
+  ssr: false,
+});
 ```
 
 ## Compliance Features
@@ -272,13 +272,13 @@ const RetracedEventsBrowser = dynamic(
 
 ```typescript
 const event: Event = {
-  action: 'member.remove',        // What happened
-  crud: 'd',                      // Operation type
-  group: { id: team.id },         // Multi-tenant isolation
-  actor: { id: user.id },         // Who did it
-  created: new Date(),            // When it happened
-  target: { id: member.id },      // What was affected (optional)
-  description: 'Custom details',  // Additional context (optional)
+  action: 'member.remove', // What happened
+  crud: 'd', // Operation type
+  group: { id: team.id }, // Multi-tenant isolation
+  actor: { id: user.id }, // Who did it
+  created: new Date(), // When it happened
+  target: { id: member.id }, // What was affected (optional)
+  description: 'Custom details', // Additional context (optional)
 };
 ```
 
@@ -286,13 +286,16 @@ const event: Event = {
 
 ```typescript
 // API endpoint for programmatic access
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
   // Verify team access
   const teamMember = await throwIfNoTeamAccess(req, res);
-  
+
   // Generate viewer token for API access
   const token = await getViewerToken(teamMember.team.id, teamMember.user.id);
-  
+
   // Return token for external audit log queries
   res.json({ token, endpoint: `${env.retraced.url}/publisher/v1` });
 }
@@ -331,7 +334,7 @@ RETRACED_PROJECT_ID=your-project-id
 const healthCheck = async () => {
   const client = getRetracedClient();
   if (!client) return false;
-  
+
   try {
     await client.reportEvent({
       action: 'health.check',
@@ -351,17 +354,20 @@ const healthCheck = async () => {
 ### Common Issues
 
 **Audit Events Not Appearing**
+
 - Verify API key and project ID are correct
 - Check Retraced URL is accessible
 - Ensure feature flag is enabled
 - Review network connectivity
 
 **Viewer Token Errors**
+
 - Verify team member has access to the team
 - Check actor ID matches authenticated user
 - Ensure group ID is correct team ID
 
 **Performance Issues**
+
 - Monitor audit event volume
 - Consider batching high-frequency events
 - Check Retraced service response times
@@ -372,7 +378,7 @@ const healthCheck = async () => {
 // Enable debug logging
 const sendAudit = async (request: Request) => {
   const client = getRetracedClient();
-  
+
   if (process.env.NODE_ENV === 'development') {
     console.log('Sending audit event:', {
       action: request.action,
@@ -380,7 +386,7 @@ const sendAudit = async (request: Request) => {
       user: request.user.id,
     });
   }
-  
+
   return await client?.reportEvent(event);
 };
 ```
@@ -388,21 +394,25 @@ const sendAudit = async (request: Request) => {
 ## Security Considerations
 
 ### Token Security
+
 - Viewer tokens are team-scoped and time-limited
 - Tokens include actor information for attribution
 - API access requires proper authentication
 
 ### Data Protection
+
 - Audit logs are immutable and tamper-evident
 - Multi-tenant isolation prevents cross-team access
 - All data transmission uses HTTPS encryption
 
 ### Access Control
+
 - Role-based access to audit log viewing
 - Team administrators can access full audit history
 - Regular members may have limited access based on configuration
 
 ## Related Files
+
 - `lib/retraced.ts:1` - Core audit logging configuration
 - `pages/teams/[slug]/audit-logs.tsx:1` - Audit log viewer page
 - `pages/api/teams/[slug]/members.ts:50` - Example audit event usage

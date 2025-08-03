@@ -37,9 +37,7 @@ const PasswordResetDialog = ({
 
   return (
     <Modal open={visible} close={handle_close}>
-      <Modal.Header>
-        {t('password-reset-complete')}
-      </Modal.Header>
+      <Modal.Header>{t('password-reset-complete')}</Modal.Header>
 
       <Modal.Body>
         <div className="space-y-4">

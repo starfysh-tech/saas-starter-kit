@@ -5,6 +5,7 @@ Google reCAPTCHA v3 provides bot protection for forms and user interactions with
 ## Overview
 
 reCAPTCHA v3:
+
 - Provides continuous protection without user interaction
 - Returns a score (0.0-1.0) indicating likelihood of human user
 - Allows custom actions for different user interactions
@@ -45,10 +46,10 @@ interface GoogleReCAPTCHAProps {
   siteKey?: string
 }
 
-export default function GoogleReCAPTCHA({ 
-  onToken, 
-  action, 
-  siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY 
+export default function GoogleReCAPTCHA({
+  onToken,
+  action,
+  siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY
 }: GoogleReCAPTCHAProps) {
   const recaptchaRef = useRef<HTMLDivElement>(null)
 
@@ -93,8 +94,8 @@ export default function GoogleReCAPTCHA({
 
   return (
     <div ref={recaptchaRef}>
-      <button 
-        type="button" 
+      <button
+        type="button"
         onClick={executeRecaptcha}
         className="hidden"
       >
@@ -120,80 +121,84 @@ declare global {
 Create `hooks/useRecaptcha.ts`:
 
 ```typescript
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react';
 
 interface UseRecaptchaReturn {
-  executeRecaptcha: (action: string) => Promise<string | null>
-  isLoaded: boolean
-  error: string | null
+  executeRecaptcha: (action: string) => Promise<string | null>;
+  isLoaded: boolean;
+  error: string | null;
 }
 
 export function useRecaptcha(): UseRecaptchaReturn {
-  const [isLoaded, setIsLoaded] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [isLoaded, setIsLoaded] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY
+  const siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
 
   useEffect(() => {
     if (!siteKey) {
-      setError('reCAPTCHA site key not configured')
-      return
+      setError('reCAPTCHA site key not configured');
+      return;
     }
 
     // Check if script already loaded
     if (window.grecaptcha) {
-      setIsLoaded(true)
-      return
+      setIsLoaded(true);
+      return;
     }
 
     // Load reCAPTCHA script
-    const script = document.createElement('script')
-    script.src = `https://www.google.com/recaptcha/api.js?render=${siteKey}`
-    script.async = true
-    script.defer = true
+    const script = document.createElement('script');
+    script.src = `https://www.google.com/recaptcha/api.js?render=${siteKey}`;
+    script.async = true;
+    script.defer = true;
 
     script.onload = () => {
       window.grecaptcha.ready(() => {
-        setIsLoaded(true)
-        setError(null)
-      })
-    }
+        setIsLoaded(true);
+        setError(null);
+      });
+    };
 
     script.onerror = () => {
-      setError('Failed to load reCAPTCHA script')
-    }
+      setError('Failed to load reCAPTCHA script');
+    };
 
-    document.head.appendChild(script)
+    document.head.appendChild(script);
 
     return () => {
       if (document.head.contains(script)) {
-        document.head.removeChild(script)
+        document.head.removeChild(script);
       }
-    }
-  }, [siteKey])
+    };
+  }, [siteKey]);
 
-  const executeRecaptcha = useCallback(async (action: string): Promise<string | null> => {
-    if (!isLoaded || !window.grecaptcha || !siteKey) {
-      setError('reCAPTCHA not ready')
-      return null
-    }
+  const executeRecaptcha = useCallback(
+    async (action: string): Promise<string | null> => {
+      if (!isLoaded || !window.grecaptcha || !siteKey) {
+        setError('reCAPTCHA not ready');
+        return null;
+      }
 
-    try {
-      const token = await window.grecaptcha.execute(siteKey, { action })
-      setError(null)
-      return token
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'reCAPTCHA execution failed'
-      setError(errorMessage)
-      return null
-    }
-  }, [isLoaded, siteKey])
+      try {
+        const token = await window.grecaptcha.execute(siteKey, { action });
+        setError(null);
+        return token;
+      } catch (err) {
+        const errorMessage =
+          err instanceof Error ? err.message : 'reCAPTCHA execution failed';
+        setError(errorMessage);
+        return null;
+      }
+    },
+    [isLoaded, siteKey]
+  );
 
   return {
     executeRecaptcha,
     isLoaded,
     error,
-  }
+  };
 }
 ```
 
@@ -217,7 +222,7 @@ export default function ContactForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     if (!isLoaded) {
       alert('reCAPTCHA not ready. Please try again.')
       return
@@ -228,7 +233,7 @@ export default function ContactForm() {
     try {
       // Execute reCAPTCHA
       const recaptchaToken = await executeRecaptcha('contact_form')
-      
+
       if (!recaptchaToken) {
         throw new Error('reCAPTCHA verification failed')
       }
@@ -335,12 +340,12 @@ Create `lib/recaptcha.ts`:
 
 ```typescript
 interface RecaptchaResponse {
-  success: boolean
-  score: number
-  action: string
-  challenge_ts: string
-  hostname: string
-  'error-codes'?: string[]
+  success: boolean;
+  score: number;
+  action: string;
+  challenge_ts: string;
+  hostname: string;
+  'error-codes'?: string[];
 }
 
 export async function verifyRecaptcha(
@@ -348,35 +353,38 @@ export async function verifyRecaptcha(
   expectedAction?: string,
   minimumScore: number = 0.5
 ): Promise<{ success: boolean; score?: number; error?: string }> {
-  const secretKey = process.env.RECAPTCHA_SECRET_KEY
+  const secretKey = process.env.RECAPTCHA_SECRET_KEY;
 
   if (!secretKey) {
-    return { success: false, error: 'reCAPTCHA secret key not configured' }
+    return { success: false, error: 'reCAPTCHA secret key not configured' };
   }
 
   if (!token) {
-    return { success: false, error: 'reCAPTCHA token not provided' }
+    return { success: false, error: 'reCAPTCHA token not provided' };
   }
 
   try {
-    const response = await fetch('https://www.google.com/recaptcha/api/siteverify', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      body: new URLSearchParams({
-        secret: secretKey,
-        response: token,
-      }),
-    })
+    const response = await fetch(
+      'https://www.google.com/recaptcha/api/siteverify',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams({
+          secret: secretKey,
+          response: token,
+        }),
+      }
+    );
 
-    const data: RecaptchaResponse = await response.json()
+    const data: RecaptchaResponse = await response.json();
 
     if (!data.success) {
       return {
         success: false,
         error: `reCAPTCHA verification failed: ${data['error-codes']?.join(', ')}`,
-      }
+      };
     }
 
     // Check action if specified
@@ -384,7 +392,7 @@ export async function verifyRecaptcha(
       return {
         success: false,
         error: `Action mismatch: expected ${expectedAction}, got ${data.action}`,
-      }
+      };
     }
 
     // Check score
@@ -393,18 +401,18 @@ export async function verifyRecaptcha(
         success: false,
         score: data.score,
         error: `Score too low: ${data.score} (minimum: ${minimumScore})`,
-      }
+      };
     }
 
     return {
       success: true,
       score: data.score,
-    }
+    };
   } catch (error) {
     return {
       success: false,
       error: `reCAPTCHA verification error: ${error instanceof Error ? error.message : 'Unknown error'}`,
-    }
+    };
   }
 }
 ```
@@ -414,22 +422,22 @@ export async function verifyRecaptcha(
 Create `pages/api/contact.ts`:
 
 ```typescript
-import { NextApiRequest, NextApiResponse } from 'next'
-import { verifyRecaptcha } from '@/lib/recaptcha'
+import { NextApiRequest, NextApiResponse } from 'next';
+import { verifyRecaptcha } from '@/lib/recaptcha';
 
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
   if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' })
+    return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { name, email, message, recaptchaToken } = req.body
+  const { name, email, message, recaptchaToken } = req.body;
 
   // Validate required fields
   if (!name || !email || !message) {
-    return res.status(400).json({ error: 'Missing required fields' })
+    return res.status(400).json({ error: 'Missing required fields' });
   }
 
   // Verify reCAPTCHA
@@ -437,27 +445,27 @@ export default async function handler(
     recaptchaToken,
     'contact_form', // Expected action
     0.5 // Minimum score
-  )
+  );
 
   if (!recaptchaResult.success) {
-    console.error('reCAPTCHA verification failed:', recaptchaResult.error)
-    return res.status(400).json({ error: 'reCAPTCHA verification failed' })
+    console.error('reCAPTCHA verification failed:', recaptchaResult.error);
+    return res.status(400).json({ error: 'reCAPTCHA verification failed' });
   }
 
   // Log score for monitoring
-  console.log(`reCAPTCHA score: ${recaptchaResult.score}`)
+  console.log(`reCAPTCHA score: ${recaptchaResult.score}`);
 
   try {
     // Process the form submission
     // Send email, save to database, etc.
-    
-    res.status(200).json({ 
+
+    res.status(200).json({
       message: 'Contact form submitted successfully',
       score: recaptchaResult.score,
-    })
+    });
   } catch (error) {
-    console.error('Contact form processing error:', error)
-    res.status(500).json({ error: 'Internal server error' })
+    console.error('Contact form processing error:', error);
+    res.status(500).json({ error: 'Internal server error' });
   }
 }
 ```
@@ -469,8 +477,8 @@ export default async function handler(
 ```typescript
 // In login form
 const handleLogin = async (credentials: LoginCredentials) => {
-  const recaptchaToken = await executeRecaptcha('login')
-  
+  const recaptchaToken = await executeRecaptcha('login');
+
   const response = await fetch('/api/auth/signin', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -478,15 +486,15 @@ const handleLogin = async (credentials: LoginCredentials) => {
       ...credentials,
       recaptchaToken,
     }),
-  })
-}
+  });
+};
 
 // In API route
 const recaptchaResult = await verifyRecaptcha(
   recaptchaToken,
   'login',
   0.3 // Lower threshold for login
-)
+);
 ```
 
 ### Registration Form Protection
@@ -494,17 +502,17 @@ const recaptchaResult = await verifyRecaptcha(
 ```typescript
 // In registration form
 const handleRegister = async (userData: RegisterData) => {
-  const recaptchaToken = await executeRecaptcha('register')
-  
+  const recaptchaToken = await executeRecaptcha('register');
+
   // Submit with token
-}
+};
 
 // In API route - higher threshold for registration
 const recaptchaResult = await verifyRecaptcha(
   recaptchaToken,
   'register',
   0.7 // Higher threshold for registration
-)
+);
 ```
 
 ## Score-Based Actions
@@ -513,28 +521,28 @@ const recaptchaResult = await verifyRecaptcha(
 
 ```typescript
 export function handleRecaptchaScore(score: number, action: string) {
-  console.log(`reCAPTCHA score for ${action}: ${score}`)
+  console.log(`reCAPTCHA score for ${action}: ${score}`);
 
   if (score >= 0.9) {
     // Very likely human - allow immediately
-    return { allow: true, requireAdditional: false }
+    return { allow: true, requireAdditional: false };
   } else if (score >= 0.5) {
     // Likely human - allow with monitoring
-    return { allow: true, requireAdditional: false }
+    return { allow: true, requireAdditional: false };
   } else if (score >= 0.3) {
     // Suspicious - require additional verification
-    return { 
-      allow: true, 
+    return {
+      allow: true,
       requireAdditional: true,
-      message: 'Additional verification required'
-    }
+      message: 'Additional verification required',
+    };
   } else {
     // Likely bot - block or challenge
-    return { 
-      allow: false, 
+    return {
+      allow: false,
       requireAdditional: true,
-      message: 'Security verification failed'
-    }
+      message: 'Security verification failed',
+    };
   }
 }
 ```
@@ -550,10 +558,12 @@ const RECAPTCHA_THRESHOLDS = {
   password_reset: 0.4,
   api_access: 0.6,
   payment: 0.8,
-} as const
+} as const;
 
 export function getThresholdForAction(action: string): number {
-  return RECAPTCHA_THRESHOLDS[action as keyof typeof RECAPTCHA_THRESHOLDS] || 0.5
+  return (
+    RECAPTCHA_THRESHOLDS[action as keyof typeof RECAPTCHA_THRESHOLDS] || 0.5
+  );
 }
 ```
 
@@ -567,7 +577,7 @@ if (process.env.NODE_ENV === 'development') {
   export const mockVerifyRecaptcha = async () => ({
     success: true,
     score: 0.9,
-  })
+  });
 }
 ```
 
@@ -614,7 +624,7 @@ export function logRecaptchaScore(
     userId,
     timestamp: new Date().toISOString(),
     ...additional,
-  })
+  });
 
   // Send to analytics service
   if (typeof window !== 'undefined' && window.gtag) {
@@ -622,7 +632,7 @@ export function logRecaptchaScore(
       action,
       score: Math.round(score * 100),
       user_id: userId,
-    })
+    });
   }
 }
 ```
@@ -640,11 +650,11 @@ export function logRecaptchaScore(
 
 ```typescript
 // Enable debug logging
-const DEBUG_RECAPTCHA = process.env.NODE_ENV === 'development'
+const DEBUG_RECAPTCHA = process.env.NODE_ENV === 'development';
 
 export function debugRecaptcha(message: string, data?: any) {
   if (DEBUG_RECAPTCHA) {
-    console.log(`[reCAPTCHA Debug] ${message}`, data)
+    console.log(`[reCAPTCHA Debug] ${message}`, data);
   }
 }
 ```
@@ -652,16 +662,19 @@ export function debugRecaptcha(message: string, data?: any) {
 ## Security Best Practices
 
 ### Environment Variables
+
 - Never expose secret key on client-side
 - Use different keys for different environments
 - Rotate keys periodically
 
 ### Score Validation
+
 - Set appropriate thresholds for different actions
 - Monitor score distributions
 - Implement fallback verification methods
 
 ### Rate Limiting
+
 - Combine with rate limiting for additional protection
 - Monitor for unusual patterns
 - Implement progressive delays for failed attempts

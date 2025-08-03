@@ -7,6 +7,7 @@ This template provides a multi-pass, iterative approach to adding new features t
 ## How to Use This Template
 
 **Command**: When you want to add a new feature, use this command:
+
 ```
 Add feature: [brief description of what you want to build]
 ```
@@ -103,6 +104,7 @@ When all passes are complete, generate:
 
 **Pass 1 - High-Level Concept**:
 ```
+
 I'll help you add project management capabilities. Let me understand the scope:
 
 1. What problem are you trying to solve with project management?
@@ -112,10 +114,12 @@ I'll help you add project management capabilities. Let me understand the scope:
 
 Let me also read the current codebase to understand what patterns we can leverage...
 [Agent reads documentation and code]
+
 ```
 
 **Pass 2 - Codebase Analysis**:
 ```
+
 I've analyzed the codebase. Here's what I found relevant to project management:
 
 **Existing Patterns I Can Leverage**:
@@ -129,16 +133,19 @@ I've analyzed the codebase. Here's what I found relevant to project management:
 • API key management (simple team-scoped CRUD)
 • Webhook management (configuration with external integration)
 
-Based on your answers and the codebase, I see projects fitting the **team-scoped entity pattern**. 
+Based on your answers and the codebase, I see projects fitting the **team-scoped entity pattern**.
 
 Which approach aligns with your vision?
+
 - [ ] Simple team-scoped projects (like API keys - name, description, status)
-- [ ] Projects with sub-tasks (like team hierarchy - more complex relationships)  
+- [ ] Projects with sub-tasks (like team hierarchy - more complex relationships)
 - [ ] Projects with external integrations (like webhooks - configuration focused)
+
 ```
 
 **Pass 3 - Specification Refinement**:
 ```
+
 Based on your choice of [user's selection], let me refine the specification:
 
 **Data Model** (following existing patterns):
@@ -156,14 +163,17 @@ Based on your choice of [user's selection], let me refine the specification:
 • Modal creation forms (like add member)
 
 **Refinement Questions**:
+
 1. Status options: Active/Completed/Archived or custom statuses?
 2. Date tracking: Created date only, or start/end dates?
 3. Ownership: Team-owned or individual user-owned within team?
 4. File attachments: Needed now or future enhancement?
+
 ```
 
 **Pass 4 - Incremental Planning**:
 ```
+
 Here's my proposed incremental implementation:
 
 **Phase 1 - MVP (Core CRUD)**:
@@ -185,10 +195,12 @@ Here's my proposed incremental implementation:
 • Estimated effort: 4-5 hours
 
 Which phase should we start with? Should I adjust this breakdown based on your priorities?
+
 ```
 
 **Pass 5 - Technical Validation**:
 ```
+
 Final technical validation for Phase 1:
 
 **Database Model** ✅
@@ -214,6 +226,7 @@ Final technical validation for Phase 1:
 **One consideration**: Should projects have individual owners within teams (like team members) or just team ownership (like API keys)?
 
 Ready to generate the complete implementation guide for Phase 1?
+
 ```
 
 ## Key Principles
@@ -230,7 +243,9 @@ Ready to generate the complete implementation guide for Phase 1?
 For the sub-agent to maintain context across passes:
 
 ```
+
 ## Current State
+
 - **Pass**: [1-5]
 - **Feature**: [Brief description]
 - **Concept**: [Current understanding]
@@ -239,6 +254,7 @@ For the sub-agent to maintain context across passes:
 - **Decisions**: [User choices made]
 - **Current Phase**: [MVP/Enhancement being planned]
 - **Next Questions**: [What needs clarification]
+
 ```
 
 This template ensures systematic, iterative feature development that maintains consistency with the existing codebase while building user understanding progressively.
@@ -249,19 +265,23 @@ This template ensures systematic, iterative feature development that maintains c
 ## Usage Examples
 
 ### Example 1: Simple Feature Request
+
 **User**: "Add feature: team announcements"
 
 **Agent Process**:
+
 1. **Pass 1**: Understand announcement scope and audience
 2. **Pass 2**: Find similar patterns (team settings, member notifications)
 3. **Pass 3**: Refine as simple team-scoped announcements with CRUD
 4. **Pass 4**: Plan MVP (basic CRUD) → Enhancement (notifications)
 5. **Pass 5**: Validate against existing notification patterns
 
-### Example 2: Complex Feature Request  
+### Example 2: Complex Feature Request
+
 **User**: "Add feature: customer relationship management"
 
 **Agent Process**:
+
 1. **Pass 1**: Understand CRM scope (leads, customers, deals, etc.)
 2. **Pass 2**: Analyze complex entity relationships in existing code
 3. **Pass 3**: Break into core entities (customers) vs complex features (pipeline)
@@ -269,9 +289,11 @@ This template ensures systematic, iterative feature development that maintains c
 5. **Pass 5**: Validate each phase against existing patterns
 
 ### Example 3: Integration Feature
+
 **User**: "Add feature: Slack integration for notifications"
 
 **Agent Process**:
+
 1. **Pass 1**: Understand notification types and triggers
 2. **Pass 2**: Analyze existing webhook and external service patterns
 3. **Pass 3**: Refine integration approach using existing patterns

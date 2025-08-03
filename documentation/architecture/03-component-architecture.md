@@ -60,20 +60,20 @@ graph TD
         D[Table Components]
         E[Navigation Components]
     end
-    
+
     subgraph "Domain Components"
         F[Auth Components]
         G[Team Components]
         H[Billing Components]
         I[Settings Components]
     end
-    
+
     subgraph "Foundation"
         J[Design System]
         K[Utility Functions]
         L[Type Definitions]
     end
-    
+
     F --> A
     G --> A
     H --> A
@@ -81,7 +81,7 @@ graph TD
     A --> J
     B --> J
     C --> J
-    
+
     style A fill:#e3f2fd
     style F fill:#e8f5e8
     style J fill:#fff3e0
@@ -90,6 +90,7 @@ graph TD
 #### Shared UI Components (`/components/shared/`)
 
 **Layout Components**:
+
 ```typescript
 // components/shared/Layout.tsx
 interface LayoutProps {
@@ -114,6 +115,7 @@ export function Layout({ children, title, description }: LayoutProps) {
 ```
 
 **Form Components**:
+
 ```typescript
 // components/shared/FormField.tsx
 interface FormFieldProps {
@@ -147,6 +149,7 @@ export function FormField({ label, name, type = "text", ...props }: FormFieldPro
 #### Domain-Specific Components
 
 **Authentication Components** (`/components/auth/`):
+
 ```typescript
 // components/auth/LoginForm.tsx
 interface LoginFormProps {
@@ -197,6 +200,7 @@ export function LoginForm({ onSuccess, redirectUrl }: LoginFormProps) {
 ```
 
 **Team Management Components** (`/components/team/`):
+
 ```typescript
 // components/team/TeamMemberList.tsx
 interface TeamMemberListProps {
@@ -218,7 +222,7 @@ export function TeamMemberList({ teamId, canManageMembers }: TeamMemberListProps
       <div className="flex justify-between items-center">
         <h3 className="text-lg font-semibold">Team Members</h3>
         {canManageMembers && (
-          <button 
+          <button
             className="btn btn-primary"
             onClick={() => setIsInviting(true)}
           >
@@ -240,7 +244,7 @@ export function TeamMemberList({ teamId, canManageMembers }: TeamMemberListProps
           </thead>
           <tbody>
             {members?.map((member) => (
-              <MemberRow 
+              <MemberRow
                 key={member.id}
                 member={member}
                 canManage={canManageMembers}
@@ -269,6 +273,7 @@ export function TeamMemberList({ teamId, canManageMembers }: TeamMemberListProps
 ### Custom Hooks Layer (`/hooks/`)
 
 **Data Fetching Hooks**:
+
 ```typescript
 // hooks/useTeam.ts
 export function useTeam(slug: string) {
@@ -277,7 +282,7 @@ export function useTeam(slug: string) {
     fetcher,
     {
       revalidateOnFocus: false,
-      dedupingInterval: 60000 // 1 minute
+      dedupingInterval: 60000, // 1 minute
     }
   );
 
@@ -285,7 +290,7 @@ export function useTeam(slug: string) {
     team: data,
     isLoading: !error && !data,
     isError: error,
-    mutate
+    mutate,
   };
 }
 
@@ -297,7 +302,7 @@ export function usePermissions(teamSlug: string, resource: string) {
   const permissions = useMemo(() => {
     if (!session?.user || !team) return {};
 
-    const membership = team.members.find(m => m.userId === session.user.id);
+    const membership = team.members.find((m) => m.userId === session.user.id);
     if (!membership) return {};
 
     return getPermissions(membership.role, resource);
@@ -308,6 +313,7 @@ export function usePermissions(teamSlug: string, resource: string) {
 ```
 
 **Form Management Hooks**:
+
 ```typescript
 // hooks/useFormSubmission.ts
 export function useFormSubmission<T>(
@@ -328,7 +334,8 @@ export function useFormSubmission<T>(
       await onSubmit(values);
       options?.onSuccess?.();
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'An error occurred';
+      const errorMessage =
+        err instanceof Error ? err.message : 'An error occurred';
       setError(errorMessage);
       options?.onError?.(err instanceof Error ? err : new Error(errorMessage));
     } finally {
@@ -340,7 +347,7 @@ export function useFormSubmission<T>(
     handleSubmit,
     isSubmitting,
     error,
-    setError
+    setError,
   };
 }
 ```
@@ -355,23 +362,23 @@ graph TD
         A["/api/auth/*"]
         B["/api/oauth/*"]
     end
-    
+
     subgraph "Team APIs"
         C["/api/teams/[slug]/*"]
         D["/api/teams/[slug]/members"]
         E["/api/teams/[slug]/settings"]
     end
-    
+
     subgraph "Billing APIs"
         F["/api/billing/*"]
         G["/api/webhooks/stripe"]
     end
-    
+
     subgraph "System APIs"
         H["/api/health"]
         I["/api/webhooks/*"]
     end
-    
+
     style A fill:#e3f2fd
     style C fill:#e8f5e8
     style F fill:#fff3e0
@@ -379,6 +386,7 @@ graph TD
 ```
 
 **API Route Structure**:
+
 ```typescript
 // pages/api/teams/[slug]/members.ts
 import { NextApiRequest, NextApiResponse } from 'next';
@@ -387,7 +395,10 @@ import { authOptions } from '@/lib/nextAuth';
 import { getTeamMembers, addTeamMember, removeTeamMember } from '@/models/team';
 import { hasPermission } from '@/lib/permissions';
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
   const session = await getServerSession(req, res, authOptions);
   if (!session?.user) {
     return res.status(401).json({ error: 'Unauthorized' });
@@ -418,7 +429,11 @@ async function handleGetMembers(
   user: any,
   teamSlug: string
 ) {
-  const canViewMembers = await hasPermission(user.id, teamSlug, 'team:member:read');
+  const canViewMembers = await hasPermission(
+    user.id,
+    teamSlug,
+    'team:member:read'
+  );
   if (!canViewMembers) {
     return res.status(403).json({ error: 'Insufficient permissions' });
   }
@@ -439,8 +454,12 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Public routes that don't require authentication
-  const publicRoutes = ['/auth/signin', '/auth/signup', '/auth/forgot-password'];
-  if (publicRoutes.some(route => pathname.startsWith(route))) {
+  const publicRoutes = [
+    '/auth/signin',
+    '/auth/signup',
+    '/auth/forgot-password',
+  ];
+  if (publicRoutes.some((route) => pathname.startsWith(route))) {
     return NextResponse.next();
   }
 
@@ -459,7 +478,7 @@ export async function middleware(request: NextRequest) {
 
 async function handleApiAuth(request: NextRequest) {
   const token = await getToken({ req: request });
-  
+
   if (!token) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
@@ -478,7 +497,7 @@ async function handleApiAuth(request: NextRequest) {
 
 async function handlePageAuth(request: NextRequest) {
   const token = await getToken({ req: request });
-  
+
   if (!token) {
     const url = request.nextUrl.clone();
     url.pathname = '/auth/signin';
@@ -495,8 +514,8 @@ export const config = {
     '/teams/:path*',
     '/dashboard/:path*',
     '/billing/:path*',
-    '/settings/:path*'
-  ]
+    '/settings/:path*',
+  ],
 };
 ```
 
@@ -535,9 +554,9 @@ export async function createTeam(params: CreateTeamParams) {
         members: {
           create: {
             userId: ownerId,
-            role: 'OWNER'
-          }
-        }
+            role: 'OWNER',
+          },
+        },
       },
       include: {
         members: {
@@ -546,12 +565,12 @@ export async function createTeam(params: CreateTeamParams) {
               select: {
                 id: true,
                 name: true,
-                email: true
-              }
-            }
-          }
-        }
-      }
+                email: true,
+              },
+            },
+          },
+        },
+      },
     });
 
     // Create Svix app for webhook management
@@ -566,11 +585,15 @@ export async function createTeam(params: CreateTeamParams) {
     data: {
       teamId: team.id,
       teamName: team.name,
-      ownerId: ownerId
-    }
+      ownerId: ownerId,
+    },
   });
 
-  logger.info('Team created', { teamId: team.id, teamName: team.name, ownerId });
+  logger.info('Team created', {
+    teamId: team.id,
+    teamName: team.name,
+    ownerId,
+  });
 
   return team;
 }
@@ -580,7 +603,7 @@ export async function getTeamMembers(teamSlug: string, userId: string) {
 
   return await prisma.teamMember.findMany({
     where: {
-      team: { slug: teamSlug }
+      team: { slug: teamSlug },
     },
     include: {
       user: {
@@ -588,13 +611,13 @@ export async function getTeamMembers(teamSlug: string, userId: string) {
           id: true,
           name: true,
           email: true,
-          image: true
-        }
-      }
+          image: true,
+        },
+      },
     },
     orderBy: {
-      createdAt: 'asc'
-    }
+      createdAt: 'asc',
+    },
   });
 }
 
@@ -608,7 +631,7 @@ export async function inviteTeamMember(
 
   const team = await prisma.team.findUnique({
     where: { slug: teamSlug },
-    select: { id: true, name: true }
+    select: { id: true, name: true },
   });
 
   if (!team) {
@@ -619,8 +642,8 @@ export async function inviteTeamMember(
   const existingMember = await prisma.teamMember.findFirst({
     where: {
       teamId: team.id,
-      user: { email }
-    }
+      user: { email },
+    },
   });
 
   if (existingMember) {
@@ -635,8 +658,8 @@ export async function inviteTeamMember(
       teamId: team.id,
       invitedBy: inviterUserId,
       token: generateInvitationToken(),
-      expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // 7 days
-    }
+      expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
+    },
   });
 
   // Send invitation email
@@ -644,7 +667,7 @@ export async function inviteTeamMember(
     email,
     teamName: team.name,
     invitationToken: invitation.token,
-    role
+    role,
   });
 
   // Send webhook event
@@ -654,15 +677,15 @@ export async function inviteTeamMember(
       teamId: team.id,
       email,
       role,
-      invitedBy: inviterUserId
-    }
+      invitedBy: inviterUserId,
+    },
   });
 
-  logger.info('Team member invited', { 
-    teamId: team.id, 
-    email, 
-    role, 
-    invitedBy: inviterUserId 
+  logger.info('Team member invited', {
+    teamId: team.id,
+    email,
+    role,
+    invitedBy: inviterUserId,
   });
 
   return invitation;
@@ -682,7 +705,7 @@ export class StripeService {
 
   constructor() {
     this.stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-      apiVersion: '2023-10-16'
+      apiVersion: '2023-10-16',
     });
   }
 
@@ -692,17 +715,20 @@ export class StripeService {
         email,
         name,
         metadata: {
-          teamId
-        }
+          teamId,
+        },
       });
 
       // Store customer ID in database
       await prisma.team.update({
         where: { id: teamId },
-        data: { stripeCustomerId: customer.id }
+        data: { stripeCustomerId: customer.id },
       });
 
-      logger.info('Stripe customer created', { teamId, customerId: customer.id });
+      logger.info('Stripe customer created', {
+        teamId,
+        customerId: customer.id,
+      });
       return customer;
     } catch (error) {
       logger.error('Failed to create Stripe customer', { teamId, error });
@@ -717,12 +743,16 @@ export class StripeService {
         items: [{ price: priceId }],
         payment_behavior: 'default_incomplete',
         payment_settings: { save_default_payment_method: 'on_subscription' },
-        expand: ['latest_invoice.payment_intent']
+        expand: ['latest_invoice.payment_intent'],
       });
 
       return subscription;
     } catch (error) {
-      logger.error('Failed to create subscription', { customerId, priceId, error });
+      logger.error('Failed to create subscription', {
+        customerId,
+        priceId,
+        error,
+      });
       throw new Error('Failed to create subscription');
     }
   }
@@ -731,13 +761,19 @@ export class StripeService {
     try {
       switch (event.type) {
         case 'customer.subscription.created':
-          await this.handleSubscriptionCreated(event.data.object as Stripe.Subscription);
+          await this.handleSubscriptionCreated(
+            event.data.object as Stripe.Subscription
+          );
           break;
         case 'customer.subscription.updated':
-          await this.handleSubscriptionUpdated(event.data.object as Stripe.Subscription);
+          await this.handleSubscriptionUpdated(
+            event.data.object as Stripe.Subscription
+          );
           break;
         case 'invoice.payment_succeeded':
-          await this.handlePaymentSucceeded(event.data.object as Stripe.Invoice);
+          await this.handlePaymentSucceeded(
+            event.data.object as Stripe.Invoice
+          );
           break;
         default:
           logger.warn('Unhandled webhook event type', { type: event.type });
@@ -750,10 +786,10 @@ export class StripeService {
 
   private async handleSubscriptionCreated(subscription: Stripe.Subscription) {
     const customerId = subscription.customer as string;
-    
+
     // Find team by customer ID
     const team = await prisma.team.findFirst({
-      where: { stripeCustomerId: customerId }
+      where: { stripeCustomerId: customerId },
     });
 
     if (!team) {
@@ -768,11 +804,14 @@ export class StripeService {
         stripeSubscriptionId: subscription.id,
         billingStatus: subscription.status,
         billingPeriodStart: new Date(subscription.current_period_start * 1000),
-        billingPeriodEnd: new Date(subscription.current_period_end * 1000)
-      }
+        billingPeriodEnd: new Date(subscription.current_period_end * 1000),
+      },
     });
 
-    logger.info('Subscription created', { teamId: team.id, subscriptionId: subscription.id });
+    logger.info('Subscription created', {
+      teamId: team.id,
+      subscriptionId: subscription.id,
+    });
   }
 }
 ```
@@ -801,18 +840,18 @@ model User {
   emailVerified DateTime?
   image         String?
   password      String?
-  
+
   // Account lockout
   lockedAt      DateTime?
   loginAttempts Int       @default(0)
-  
+
   // Relationships
   accounts      Account[]
   sessions      Session[]
   teamMembers   TeamMember[]
   invitations   Invitation[] @relation("InvitedBy")
   apiKeys       ApiKey[]
-  
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -844,23 +883,23 @@ model Team {
   id   String @id @default(cuid())
   name String
   slug String @unique
-  
+
   // Billing
   stripeCustomerId     String?
   stripeSubscriptionId String?
   billingStatus        String?
   billingPeriodStart   DateTime?
   billingPeriodEnd     DateTime?
-  
+
   // Features
   features Json @default("{}")
-  
+
   // Relationships
   members     TeamMember[]
   invitations Invitation[]
   apiKeys     ApiKey[]
   webhooks    Webhook[]
-  
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -872,10 +911,10 @@ model TeamMember {
   userId String @map("user_id")
   teamId String @map("team_id")
   role   Role   @default(MEMBER)
-  
+
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -898,10 +937,10 @@ model ApiKey {
   userId      String   @map("user_id")
   lastUsedAt  DateTime?
   expiresAt   DateTime?
-  
+
   team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -915,9 +954,9 @@ model Webhook {
   url         String
   eventTypes  Json   @default("[]")
   active      Boolean @default(true)
-  
+
   team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -936,31 +975,34 @@ const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
 };
 
-export const prisma = globalForPrisma.prisma ?? new PrismaClient({
-  log: [
-    { level: 'query', emit: 'event' },
-    { level: 'error', emit: 'stdout' },
-    { level: 'warn', emit: 'stdout' }
-  ]
-});
+export const prisma =
+  globalForPrisma.prisma ??
+  new PrismaClient({
+    log: [
+      { level: 'query', emit: 'event' },
+      { level: 'error', emit: 'stdout' },
+      { level: 'warn', emit: 'stdout' },
+    ],
+  });
 
 // Query performance monitoring
 prisma.$on('query', (e) => {
   const duration = e.duration;
-  
-  if (duration > 1000) { // Log slow queries (> 1 second)
+
+  if (duration > 1000) {
+    // Log slow queries (> 1 second)
     logger.warn('Slow database query detected', {
       query: e.query,
       params: e.params,
-      duration: `${duration}ms`
+      duration: `${duration}ms`,
     });
   }
-  
+
   // Log all queries in development
   if (process.env.NODE_ENV === 'development') {
     logger.debug('Database query', {
       query: e.query,
-      duration: `${duration}ms`
+      duration: `${duration}ms`,
     });
   }
 });
@@ -1029,7 +1071,10 @@ export class AppError extends Error {
 }
 
 export class ValidationError extends AppError {
-  constructor(message: string, public field?: string) {
+  constructor(
+    message: string,
+    public field?: string
+  ) {
     super(message, 400, 'VALIDATION_ERROR');
     this.name = 'ValidationError';
   }
@@ -1054,16 +1099,16 @@ export function handleApiError(error: unknown, res: NextApiResponse) {
   if (error instanceof AppError) {
     return res.status(error.statusCode).json({
       error: error.message,
-      code: error.code
+      code: error.code,
     });
   }
 
   // Log unexpected errors
   logger.error('Unexpected API error', { error });
-  
+
   return res.status(500).json({
     error: 'Internal server error',
-    code: 'INTERNAL_ERROR'
+    code: 'INTERNAL_ERROR',
   });
 }
 ```

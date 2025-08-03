@@ -15,23 +15,23 @@ graph TD
         D[Data Security<br/>Encryption, Validation]
         E[Audit & Monitoring<br/>Logging, Alerting]
     end
-    
+
     subgraph "Infrastructure Security"
         F[Container Security<br/>Image Scanning, Runtime]
         G[Database Security<br/>Encryption, Access Control]
         H[API Security<br/>Rate Limiting, Validation]
     end
-    
+
     subgraph "Compliance & Governance"
         I[Data Protection<br/>GDPR, Privacy]
         J[Audit Trails<br/>SOC2, Compliance]
         K[Incident Response<br/>Monitoring, Alerting]
     end
-    
+
     A --> B --> C --> D --> E
     F --> G --> H
     I --> J --> K
-    
+
     style A fill:#ffebee
     style B fill:#e8f5e8
     style C fill:#e3f2fd
@@ -50,7 +50,7 @@ sequenceDiagram
     participant OAuth
     participant SAML
     participant Database
-    
+
     Note over User,Database: OAuth Flow
     User->>App: Login with GitHub/Google
     App->>NextAuth: Handle OAuth
@@ -60,7 +60,7 @@ sequenceDiagram
     OAuth->>NextAuth: Access token + profile
     NextAuth->>Database: Store/update account
     NextAuth->>App: Session created
-    
+
     Note over User,Database: SAML SSO Flow
     User->>App: Login with SSO
     App->>SAML: SAML request
@@ -95,22 +95,22 @@ export const authOptions: NextAuthOptions = {
       clientSecret: process.env.GITHUB_CLIENT_SECRET!,
       authorization: {
         params: {
-          scope: 'read:user user:email'
-        }
-      }
+          scope: 'read:user user:email',
+        },
+      },
     }),
-    
+
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
       authorization: {
         params: {
           scope: 'openid email profile',
-          prompt: 'consent'
-        }
-      }
+          prompt: 'consent',
+        },
+      },
     }),
-    
+
     // Email Magic Links
     EmailProvider({
       server: {
@@ -118,19 +118,19 @@ export const authOptions: NextAuthOptions = {
         port: parseInt(process.env.SMTP_PORT || '587'),
         auth: {
           user: process.env.SMTP_USER,
-          pass: process.env.SMTP_PASSWORD
-        }
+          pass: process.env.SMTP_PASSWORD,
+        },
       },
       from: process.env.EMAIL_FROM,
-      maxAge: 24 * 60 * 60 // 24 hours
+      maxAge: 24 * 60 * 60, // 24 hours
     }),
-    
+
     // Credentials (Email/Password)
     CredentialsProvider({
       name: 'credentials',
       credentials: {
         email: { label: 'Email', type: 'email' },
-        password: { label: 'Password', type: 'password' }
+        password: { label: 'Password', type: 'password' },
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
@@ -138,7 +138,7 @@ export const authOptions: NextAuthOptions = {
         }
 
         const user = await prisma.user.findUnique({
-          where: { email: credentials.email }
+          where: { email: credentials.email },
         });
 
         if (!user || !user.password) {
@@ -146,20 +146,26 @@ export const authOptions: NextAuthOptions = {
         }
 
         // Check account lockout
-        if (user.lockedAt && user.lockedAt > new Date(Date.now() - 30 * 60 * 1000)) {
+        if (
+          user.lockedAt &&
+          user.lockedAt > new Date(Date.now() - 30 * 60 * 1000)
+        ) {
           throw new Error('Account temporarily locked');
         }
 
-        const isValidPassword = await compare(credentials.password, user.password);
-        
+        const isValidPassword = await compare(
+          credentials.password,
+          user.password
+        );
+
         if (!isValidPassword) {
           // Increment failed attempts
           await prisma.user.update({
             where: { id: user.id },
             data: {
               loginAttempts: { increment: 1 },
-              ...(user.loginAttempts >= 4 && { lockedAt: new Date() })
-            }
+              ...(user.loginAttempts >= 4 && { lockedAt: new Date() }),
+            },
           });
           throw new Error('Invalid credentials');
         }
@@ -170,8 +176,8 @@ export const authOptions: NextAuthOptions = {
             where: { id: user.id },
             data: {
               loginAttempts: 0,
-              lockedAt: null
-            }
+              lockedAt: null,
+            },
           });
         }
 
@@ -179,11 +185,11 @@ export const authOptions: NextAuthOptions = {
           id: user.id,
           email: user.email,
           name: user.name,
-          image: user.image
+          image: user.image,
         };
-      }
+      },
     }),
-    
+
     // SAML SSO Provider
     SAMLProvider({
       name: 'saml',
@@ -192,53 +198,53 @@ export const authOptions: NextAuthOptions = {
         redirectUrl: process.env.NEXTAUTH_URL + '/api/oauth/saml',
         entryPoint: process.env.SAML_ENTRY_POINT,
         issuer: process.env.SAML_ISSUER,
-        cert: process.env.SAML_CERT
-      }
-    })
+        cert: process.env.SAML_CERT,
+      },
+    }),
   ],
-  
+
   session: {
     strategy: 'database', // Use database sessions for multi-device support
     maxAge: 30 * 24 * 60 * 60, // 30 days
-    updateAge: 24 * 60 * 60 // Update session every 24 hours
+    updateAge: 24 * 60 * 60, // Update session every 24 hours
   },
-  
+
   pages: {
     signIn: '/auth/signin',
     signUp: '/auth/signup',
     error: '/auth/error',
-    verifyRequest: '/auth/verify-request'
+    verifyRequest: '/auth/verify-request',
   },
-  
+
   callbacks: {
     async signIn({ user, account, profile, email, credentials }) {
       // Additional sign-in validation
       if (account?.provider === 'email') {
         return true; // Allow email verification
       }
-      
+
       // Check if email is verified for OAuth providers
       if (account?.provider !== 'credentials' && !email?.verificationRequest) {
         const existingUser = await prisma.user.findUnique({
-          where: { email: user.email! }
+          where: { email: user.email! },
         });
-        
+
         if (existingUser && !existingUser.emailVerified) {
           // Mark email as verified for OAuth sign-ins
           await prisma.user.update({
             where: { email: user.email! },
-            data: { emailVerified: new Date() }
+            data: { emailVerified: new Date() },
           });
         }
       }
-      
+
       return true;
     },
-    
+
     async session({ session, user, token }) {
       if (session?.user) {
         session.user.id = user.id;
-        
+
         // Add user teams to session
         const userTeams = await prisma.teamMember.findMany({
           where: { userId: user.id },
@@ -247,67 +253,75 @@ export const authOptions: NextAuthOptions = {
               select: {
                 id: true,
                 name: true,
-                slug: true
-              }
-            }
-          }
+                slug: true,
+              },
+            },
+          },
         });
-        
-        session.user.teams = userTeams.map(tm => ({
+
+        session.user.teams = userTeams.map((tm) => ({
           id: tm.team.id,
           name: tm.team.name,
           slug: tm.team.slug,
-          role: tm.role
+          role: tm.role,
         }));
       }
-      
+
       return session;
-    }
+    },
   },
-  
+
   events: {
     async signIn({ user, account, profile, isNewUser }) {
       // Log successful sign-ins
       console.log(`User ${user.email} signed in via ${account?.provider}`);
-      
+
       // Track analytics
       if (process.env.MIXPANEL_TOKEN) {
         // Track sign-in event
       }
     },
-    
+
     async signOut({ token }) {
       console.log(`User signed out`);
-    }
-  }
+    },
+  },
 };
 ```
 
 ### Account Security Features
 
 #### Password Security
+
 ```typescript
 // lib/password-security.ts
 import { hash, compare } from 'bcryptjs';
 import { z } from 'zod';
 
 // Password strength validation
-export const passwordSchema = z.string()
+export const passwordSchema = z
+  .string()
   .min(8, 'Password must be at least 8 characters')
   .regex(/^(?=.*[a-z])/, 'Password must contain at least one lowercase letter')
   .regex(/^(?=.*[A-Z])/, 'Password must contain at least one uppercase letter')
   .regex(/^(?=.*\d)/, 'Password must contain at least one number')
-  .regex(/^(?=.*[@$!%*?&])/, 'Password must contain at least one special character');
+  .regex(
+    /^(?=.*[@$!%*?&])/,
+    'Password must contain at least one special character'
+  );
 
 export async function hashPassword(password: string): Promise<string> {
   // Validate password strength
   passwordSchema.parse(password);
-  
+
   // Hash with bcrypt (cost factor 12)
   return await hash(password, 12);
 }
 
-export async function verifyPassword(password: string, hashedPassword: string): Promise<boolean> {
+export async function verifyPassword(
+  password: string,
+  hashedPassword: string
+): Promise<boolean> {
   return await compare(password, hashedPassword);
 }
 
@@ -315,13 +329,13 @@ export async function verifyPassword(password: string, hashedPassword: string): 
 export const LOCKOUT_CONFIG = {
   maxAttempts: 5,
   lockoutDuration: 30 * 60 * 1000, // 30 minutes
-  resetPeriod: 24 * 60 * 60 * 1000 // 24 hours
+  resetPeriod: 24 * 60 * 60 * 1000, // 24 hours
 };
 
 export async function handleFailedLogin(userId: string) {
   const user = await prisma.user.findUnique({
     where: { id: userId },
-    select: { loginAttempts: true, lockedAt: true }
+    select: { loginAttempts: true, lockedAt: true },
   });
 
   if (!user) return;
@@ -333,8 +347,8 @@ export async function handleFailedLogin(userId: string) {
     where: { id: userId },
     data: {
       loginAttempts: attempts,
-      ...(shouldLock && { lockedAt: new Date() })
-    }
+      ...(shouldLock && { lockedAt: new Date() }),
+    },
   });
 
   if (shouldLock) {
@@ -345,6 +359,7 @@ export async function handleFailedLogin(userId: string) {
 ```
 
 #### Multi-Factor Authentication (MFA)
+
 ```typescript
 // lib/mfa.ts
 import { authenticator } from 'otplib';
@@ -353,34 +368,34 @@ import QRCode from 'qrcode';
 export async function enableMFA(userId: string, teamSlug: string) {
   const user = await prisma.user.findUnique({
     where: { id: userId },
-    select: { email: true, name: true }
+    select: { email: true, name: true },
   });
 
   if (!user) throw new Error('User not found');
 
   // Generate secret
   const secret = authenticator.generateSecret();
-  
+
   // Create service name
   const serviceName = `SaaS Kit (${teamSlug})`;
   const otpUrl = authenticator.keyuri(user.email, serviceName, secret);
-  
+
   // Generate QR code
   const qrCode = await QRCode.toDataURL(otpUrl);
-  
+
   // Store secret (encrypted)
   await prisma.user.update({
     where: { id: userId },
     data: {
       mfaSecret: encrypt(secret),
-      mfaEnabled: false // Not enabled until verified
-    }
+      mfaEnabled: false, // Not enabled until verified
+    },
   });
 
   return {
     secret,
     qrCode,
-    backupCodes: generateBackupCodes()
+    backupCodes: generateBackupCodes(),
   };
 }
 
@@ -389,7 +404,7 @@ export function verifyMFAToken(secret: string, token: string): boolean {
 }
 
 function generateBackupCodes(): string[] {
-  return Array.from({ length: 10 }, () => 
+  return Array.from({ length: 10 }, () =>
     Math.random().toString(36).substring(2, 10).toUpperCase()
   );
 }
@@ -405,7 +420,7 @@ graph TD
         A[OWNER] --> B[ADMIN]
         B --> C[MEMBER]
     end
-    
+
     subgraph "Permissions"
         D[team:read]
         E[team:write]
@@ -418,17 +433,18 @@ graph TD
         L[settings:read]
         M[settings:write]
     end
-    
+
     A --> D & E & F & G & H & I & J & K & L & M
     B --> D & E & G & H & I & J & L & M
     C --> D & G & J & L
-    
+
     style A fill:#ff6b6b
     style B fill:#4ecdc4
     style C fill:#45b7d1
 ```
 
 #### Permission System Implementation
+
 ```typescript
 // lib/permissions.ts
 export enum Permission {
@@ -436,42 +452,42 @@ export enum Permission {
   TEAM_READ = 'team:read',
   TEAM_WRITE = 'team:write',
   TEAM_DELETE = 'team:delete',
-  
+
   // Member permissions
   MEMBER_READ = 'member:read',
   MEMBER_WRITE = 'member:write',
   MEMBER_DELETE = 'member:delete',
-  
+
   // Billing permissions
   BILLING_READ = 'billing:read',
   BILLING_WRITE = 'billing:write',
-  
+
   // Settings permissions
   SETTINGS_READ = 'settings:read',
   SETTINGS_WRITE = 'settings:write',
-  
+
   // API permissions
   API_KEY_READ = 'api_key:read',
   API_KEY_WRITE = 'api_key:write',
-  
+
   // Webhook permissions
   WEBHOOK_READ = 'webhook:read',
-  WEBHOOK_WRITE = 'webhook:write'
+  WEBHOOK_WRITE = 'webhook:write',
 }
 
 export enum Role {
   OWNER = 'OWNER',
   ADMIN = 'ADMIN',
-  MEMBER = 'MEMBER'
+  MEMBER = 'MEMBER',
 }
 
 // Permission matrix
 const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
   [Role.OWNER]: [
     // Owners have all permissions
-    ...Object.values(Permission)
+    ...Object.values(Permission),
   ],
-  
+
   [Role.ADMIN]: [
     Permission.TEAM_READ,
     Permission.TEAM_WRITE,
@@ -484,31 +500,34 @@ const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
     Permission.API_KEY_READ,
     Permission.API_KEY_WRITE,
     Permission.WEBHOOK_READ,
-    Permission.WEBHOOK_WRITE
+    Permission.WEBHOOK_WRITE,
   ],
-  
+
   [Role.MEMBER]: [
     Permission.TEAM_READ,
     Permission.MEMBER_READ,
     Permission.BILLING_READ,
-    Permission.SETTINGS_READ
-  ]
+    Permission.SETTINGS_READ,
+  ],
 };
 
 export function hasPermission(role: Role, permission: Permission): boolean {
   return ROLE_PERMISSIONS[role].includes(permission);
 }
 
-export async function getUserRole(userId: string, teamSlug: string): Promise<Role | null> {
+export async function getUserRole(
+  userId: string,
+  teamSlug: string
+): Promise<Role | null> {
   const membership = await prisma.teamMember.findFirst({
     where: {
       userId,
-      team: { slug: teamSlug }
+      team: { slug: teamSlug },
     },
-    select: { role: true }
+    select: { role: true },
   });
 
-  return membership?.role as Role || null;
+  return (membership?.role as Role) || null;
 }
 
 export async function checkPermission(
@@ -518,7 +537,7 @@ export async function checkPermission(
 ): Promise<boolean> {
   const role = await getUserRole(userId, teamSlug);
   if (!role) return false;
-  
+
   return hasPermission(role, permission);
 }
 
@@ -535,6 +554,7 @@ export async function throwIfNotAllowed(
 ```
 
 #### API Route Protection
+
 ```typescript
 // middleware/auth.ts
 import { NextApiRequest, NextApiResponse } from 'next';
@@ -551,7 +571,7 @@ type AuthenticatedHandler = (
 export function withAuth(handler: AuthenticatedHandler) {
   return async (req: NextApiRequest, res: NextApiResponse) => {
     const session = await getServerSession(req, res, authOptions);
-    
+
     if (!session?.user) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
@@ -560,11 +580,11 @@ export function withAuth(handler: AuthenticatedHandler) {
       await handler(req, res, session.user);
     } catch (error) {
       console.error('API Error:', error);
-      
+
       if (error instanceof AuthorizationError) {
         return res.status(403).json({ error: error.message });
       }
-      
+
       return res.status(500).json({ error: 'Internal server error' });
     }
   };
@@ -574,15 +594,15 @@ export function withPermission(permission: Permission) {
   return function (handler: AuthenticatedHandler) {
     return withAuth(async (req, res, user) => {
       const { slug } = req.query as { slug: string };
-      
+
       if (!slug) {
         return res.status(400).json({ error: 'Team slug required' });
       }
 
       const hasAccess = await checkPermission(user.id, slug, permission);
       if (!hasAccess) {
-        return res.status(403).json({ 
-          error: `Missing permission: ${permission}` 
+        return res.status(403).json({
+          error: `Missing permission: ${permission}`,
         });
       }
 
@@ -592,7 +612,11 @@ export function withPermission(permission: Permission) {
 }
 
 // Usage example
-export default withPermission(Permission.MEMBER_READ)(async (req, res, user) => {
+export default withPermission(Permission.MEMBER_READ)(async (
+  req,
+  res,
+  user
+) => {
   const { slug } = req.query as { slug: string };
   const members = await getTeamMembers(slug);
   res.json(members);
@@ -604,6 +628,7 @@ export default withPermission(Permission.MEMBER_READ)(async (req, res, user) => 
 ### Data Encryption
 
 #### At Rest Encryption
+
 ```typescript
 // lib/encryption.ts
 import { createCipher, createDecipher, randomBytes } from 'crypto';
@@ -611,29 +636,33 @@ import { createCipher, createDecipher, randomBytes } from 'crypto';
 const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY!;
 const ALGORITHM = 'aes-256-gcm';
 
-export function encrypt(text: string): { encrypted: string; iv: string; tag: string } {
+export function encrypt(text: string): {
+  encrypted: string;
+  iv: string;
+  tag: string;
+} {
   const iv = randomBytes(16);
   const cipher = createCipher(ALGORITHM, ENCRYPTION_KEY);
-  
+
   let encrypted = cipher.update(text, 'utf8', 'hex');
   encrypted += cipher.final('hex');
-  
+
   const tag = cipher.getAuthTag();
-  
+
   return {
     encrypted,
     iv: iv.toString('hex'),
-    tag: tag.toString('hex')
+    tag: tag.toString('hex'),
   };
 }
 
 export function decrypt(encrypted: string, iv: string, tag: string): string {
   const decipher = createDecipher(ALGORITHM, ENCRYPTION_KEY);
   decipher.setAuthTag(Buffer.from(tag, 'hex'));
-  
+
   let decrypted = decipher.update(encrypted, 'hex', 'utf8');
   decrypted += decipher.final('utf8');
-  
+
   return decrypted;
 }
 
@@ -650,6 +679,7 @@ export function decryptSensitiveField(encryptedValue: string): string {
 ```
 
 #### In Transit Security
+
 ```typescript
 // middleware.ts - Security headers
 import { NextRequest, NextResponse } from 'next/server';
@@ -666,7 +696,7 @@ export function middleware(request: NextRequest) {
     'Strict-Transport-Security',
     'max-age=63072000; includeSubDomains; preload'
   );
-  
+
   // Content Security Policy
   response.headers.set(
     'Content-Security-Policy',
@@ -677,7 +707,7 @@ export function middleware(request: NextRequest) {
       "font-src 'self' https://fonts.gstatic.com",
       "img-src 'self' data: https:",
       "connect-src 'self' https://api.stripe.com https://*.sentry.io",
-      "frame-src https://js.stripe.com"
+      'frame-src https://js.stripe.com',
     ].join('; ')
   );
 
@@ -685,9 +715,7 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: [
-    '/((?!api/webhooks|_next/static|_next/image|favicon.ico).*)',
-  ],
+  matcher: ['/((?!api/webhooks|_next/static|_next/image|favicon.ico).*)'],
 };
 ```
 
@@ -700,15 +728,22 @@ import DOMPurify from 'isomorphic-dompurify';
 
 // Common validation schemas
 export const emailSchema = z.string().email('Invalid email address');
-export const passwordSchema = z.string()
+export const passwordSchema = z
+  .string()
   .min(8, 'Password must be at least 8 characters')
-  .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])/, 
-    'Password must contain uppercase, lowercase, number, and special character');
+  .regex(
+    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])/,
+    'Password must contain uppercase, lowercase, number, and special character'
+  );
 
-export const teamSlugSchema = z.string()
+export const teamSlugSchema = z
+  .string()
   .min(3, 'Slug must be at least 3 characters')
   .max(50, 'Slug must be less than 50 characters')
-  .regex(/^[a-z0-9-]+$/, 'Slug can only contain lowercase letters, numbers, and hyphens');
+  .regex(
+    /^[a-z0-9-]+$/,
+    'Slug can only contain lowercase letters, numbers, and hyphens'
+  );
 
 // API input validation
 export function validateApiInput<T>(schema: z.ZodSchema<T>, data: unknown): T {
@@ -717,7 +752,7 @@ export function validateApiInput<T>(schema: z.ZodSchema<T>, data: unknown): T {
   } catch (error) {
     if (error instanceof z.ZodError) {
       throw new ValidationError(
-        error.errors.map(e => `${e.path.join('.')}: ${e.message}`).join(', ')
+        error.errors.map((e) => `${e.path.join('.')}: ${e.message}`).join(', ')
       );
     }
     throw error;
@@ -728,7 +763,7 @@ export function validateApiInput<T>(schema: z.ZodSchema<T>, data: unknown): T {
 export function sanitizeHtml(html: string): string {
   return DOMPurify.sanitize(html, {
     ALLOWED_TAGS: ['b', 'i', 'em', 'strong', 'a', 'p', 'br'],
-    ALLOWED_ATTR: ['href']
+    ALLOWED_ATTR: ['href'],
   });
 }
 
@@ -750,38 +785,48 @@ import { Redis } from 'ioredis';
 const redis = new Redis(process.env.REDIS_URL!);
 
 interface RateLimitConfig {
-  windowMs: number;  // Time window in milliseconds
-  maxRequests: number;  // Max requests per window
+  windowMs: number; // Time window in milliseconds
+  maxRequests: number; // Max requests per window
   keyGenerator?: (req: NextApiRequest) => string;
 }
 
 const defaultConfig: RateLimitConfig = {
   windowMs: 15 * 60 * 1000, // 15 minutes
-  maxRequests: 100
+  maxRequests: 100,
 };
 
 export function rateLimit(config: Partial<RateLimitConfig> = {}) {
-  const { windowMs, maxRequests, keyGenerator } = { ...defaultConfig, ...config };
+  const { windowMs, maxRequests, keyGenerator } = {
+    ...defaultConfig,
+    ...config,
+  };
 
-  return async (req: NextApiRequest, res: NextApiResponse, next: () => void) => {
+  return async (
+    req: NextApiRequest,
+    res: NextApiResponse,
+    next: () => void
+  ) => {
     const key = keyGenerator ? keyGenerator(req) : getDefaultKey(req);
     const windowKey = `rate_limit:${key}:${Math.floor(Date.now() / windowMs)}`;
 
     try {
       const current = await redis.incr(windowKey);
-      
+
       if (current === 1) {
         await redis.expire(windowKey, Math.ceil(windowMs / 1000));
       }
 
       res.setHeader('X-RateLimit-Limit', maxRequests);
-      res.setHeader('X-RateLimit-Remaining', Math.max(0, maxRequests - current));
+      res.setHeader(
+        'X-RateLimit-Remaining',
+        Math.max(0, maxRequests - current)
+      );
       res.setHeader('X-RateLimit-Reset', new Date(Date.now() + windowMs));
 
       if (current > maxRequests) {
         return res.status(429).json({
           error: 'Too many requests',
-          retryAfter: Math.ceil(windowMs / 1000)
+          retryAfter: Math.ceil(windowMs / 1000),
         });
       }
 
@@ -795,10 +840,12 @@ export function rateLimit(config: Partial<RateLimitConfig> = {}) {
 
 function getDefaultKey(req: NextApiRequest): string {
   const forwarded = req.headers['x-forwarded-for'];
-  const ip = forwarded ? 
-    (Array.isArray(forwarded) ? forwarded[0] : forwarded.split(',')[0]) :
-    req.connection.remoteAddress;
-  
+  const ip = forwarded
+    ? Array.isArray(forwarded)
+      ? forwarded[0]
+      : forwarded.split(',')[0]
+    : req.connection.remoteAddress;
+
   return `ip:${ip}`;
 }
 
@@ -806,7 +853,7 @@ function getDefaultKey(req: NextApiRequest): string {
 export const authRateLimit = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   maxRequests: 5, // 5 login attempts per 15 minutes
-  keyGenerator: (req) => `auth:${req.body.email}`
+  keyGenerator: (req) => `auth:${req.body.email}`,
 });
 
 export const apiRateLimit = rateLimit({
@@ -815,7 +862,7 @@ export const apiRateLimit = rateLimit({
   keyGenerator: (req) => {
     const apiKey = req.headers.authorization?.replace('Bearer ', '');
     return apiKey ? `api:${apiKey}` : getDefaultKey(req);
-  }
+  },
 });
 ```
 
@@ -826,17 +873,21 @@ export const apiRateLimit = rateLimit({
 import { createHash, randomBytes } from 'crypto';
 import { prisma } from './prisma';
 
-export async function generateApiKey(teamId: string, userId: string, name: string) {
+export async function generateApiKey(
+  teamId: string,
+  userId: string,
+  name: string
+) {
   // Generate random key
   const key = randomBytes(32).toString('hex');
   const keyId = randomBytes(8).toString('hex');
-  
+
   // Create API key in format: sk_live_keyId_key
   const apiKey = `sk_${process.env.NODE_ENV === 'production' ? 'live' : 'test'}_${keyId}_${key}`;
-  
+
   // Hash the key for storage
   const hashedKey = createHash('sha256').update(apiKey).digest('hex');
-  
+
   // Store in database
   const dbApiKey = await prisma.apiKey.create({
     data: {
@@ -844,8 +895,8 @@ export async function generateApiKey(teamId: string, userId: string, name: strin
       hashedKey,
       teamId,
       userId,
-      expiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000) // 1 year
-    }
+      expiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000), // 1 year
+    },
   });
 
   return { apiKey, id: dbApiKey.id };
@@ -861,13 +912,13 @@ export async function validateApiKey(apiKey: string): Promise<{
   }
 
   const hashedKey = createHash('sha256').update(apiKey).digest('hex');
-  
+
   const dbApiKey = await prisma.apiKey.findUnique({
     where: { hashedKey },
     include: {
       team: { select: { id: true } },
-      user: { select: { id: true } }
-    }
+      user: { select: { id: true } },
+    },
   });
 
   if (!dbApiKey || (dbApiKey.expiresAt && dbApiKey.expiresAt < new Date())) {
@@ -877,13 +928,13 @@ export async function validateApiKey(apiKey: string): Promise<{
   // Update last used timestamp
   await prisma.apiKey.update({
     where: { id: dbApiKey.id },
-    data: { lastUsedAt: new Date() }
+    data: { lastUsedAt: new Date() },
   });
 
   return {
     teamId: dbApiKey.team.id,
     userId: dbApiKey.user.id,
-    isValid: true
+    isValid: true,
   };
 }
 
@@ -891,13 +942,13 @@ export async function validateApiKey(apiKey: string): Promise<{
 export function withApiKeyAuth(handler: Function) {
   return async (req: NextApiRequest, res: NextApiResponse) => {
     const apiKey = req.headers.authorization?.replace('Bearer ', '');
-    
+
     if (!apiKey) {
       return res.status(401).json({ error: 'API key required' });
     }
 
     const { teamId, userId, isValid } = await validateApiKey(apiKey);
-    
+
     if (!isValid) {
       return res.status(401).json({ error: 'Invalid API key' });
     }
@@ -942,8 +993,8 @@ export async function createAuditLog(event: AuditEvent) {
         metadata: event.metadata || {},
         ipAddress: event.ipAddress,
         userAgent: event.userAgent,
-        createdAt: new Date()
-      }
+        createdAt: new Date(),
+      },
     });
   } catch (error) {
     console.error('Failed to create audit log:', error);
@@ -956,10 +1007,10 @@ export function withAudit(action: string, resourceType: string) {
   return function (handler: Function) {
     return async (req: NextApiRequest, res: NextApiResponse) => {
       const startTime = Date.now();
-      
+
       try {
         const result = await handler(req, res);
-        
+
         // Log successful action
         await createAuditLog({
           action: `${action}.success`,
@@ -971,12 +1022,12 @@ export function withAudit(action: string, resourceType: string) {
             method: req.method,
             path: req.url,
             duration: Date.now() - startTime,
-            statusCode: res.statusCode
+            statusCode: res.statusCode,
           },
           ipAddress: getClientIP(req),
-          userAgent: req.headers['user-agent']
+          userAgent: req.headers['user-agent'],
         });
-        
+
         return result;
       } catch (error) {
         // Log failed action
@@ -990,12 +1041,12 @@ export function withAudit(action: string, resourceType: string) {
             method: req.method,
             path: req.url,
             duration: Date.now() - startTime,
-            error: error.message
+            error: error.message,
           },
           ipAddress: getClientIP(req),
-          userAgent: req.headers['user-agent']
+          userAgent: req.headers['user-agent'],
         });
-        
+
         throw error;
       }
     };
@@ -1023,7 +1074,8 @@ export interface DataExportRequest {
 }
 
 export async function exportUserData(request: DataExportRequest) {
-  const { userId, includePersonalData, includeActivityLogs, includeTeamData } = request;
+  const { userId, includePersonalData, includeActivityLogs, includeTeamData } =
+    request;
 
   const exportData: any = {};
 
@@ -1037,8 +1089,8 @@ export async function exportUserData(request: DataExportRequest) {
         emailVerified: true,
         image: true,
         createdAt: true,
-        updatedAt: true
-      }
+        updatedAt: true,
+      },
     });
     exportData.personalData = user;
   }
@@ -1047,7 +1099,7 @@ export async function exportUserData(request: DataExportRequest) {
     const auditLogs = await prisma.auditLog.findMany({
       where: { userId },
       orderBy: { createdAt: 'desc' },
-      take: 1000 // Limit to last 1000 entries
+      take: 1000, // Limit to last 1000 entries
     });
     exportData.activityLogs = auditLogs;
   }
@@ -1061,10 +1113,10 @@ export async function exportUserData(request: DataExportRequest) {
             id: true,
             name: true,
             slug: true,
-            createdAt: true
-          }
-        }
-      }
+            createdAt: true,
+          },
+        },
+      },
     });
     exportData.teams = teamMemberships;
   }
@@ -1072,39 +1124,42 @@ export async function exportUserData(request: DataExportRequest) {
   return exportData;
 }
 
-export async function deleteUserData(userId: string, keepAuditLogs: boolean = true) {
+export async function deleteUserData(
+  userId: string,
+  keepAuditLogs: boolean = true
+) {
   await prisma.$transaction(async (tx) => {
     // Remove user from teams
     await tx.teamMember.deleteMany({
-      where: { userId }
+      where: { userId },
     });
 
     // Delete API keys
     await tx.apiKey.deleteMany({
-      where: { userId }
+      where: { userId },
     });
 
     // Delete OAuth accounts
     await tx.account.deleteMany({
-      where: { userId }
+      where: { userId },
     });
 
     // Delete sessions
     await tx.session.deleteMany({
-      where: { userId }
+      where: { userId },
     });
 
     if (!keepAuditLogs) {
       // Anonymize audit logs instead of deleting
       await tx.auditLog.updateMany({
         where: { userId },
-        data: { userId: null }
+        data: { userId: null },
       });
     }
 
     // Finally delete user
     await tx.user.delete({
-      where: { id: userId }
+      where: { id: userId },
     });
   });
 
@@ -1115,8 +1170,8 @@ export async function deleteUserData(userId: string, keepAuditLogs: boolean = tr
     resourceId: userId,
     metadata: {
       keepAuditLogs,
-      deletedAt: new Date().toISOString()
-    }
+      deletedAt: new Date().toISOString(),
+    },
   });
 }
 ```
@@ -1135,7 +1190,7 @@ export enum SecurityEventType {
   PRIVILEGE_ESCALATION = 'privilege_escalation',
   UNUSUAL_API_USAGE = 'unusual_api_usage',
   DATA_EXPORT = 'data_export',
-  FAILED_AUTHORIZATION = 'failed_authorization'
+  FAILED_AUTHORIZATION = 'failed_authorization',
 }
 
 export interface SecurityEvent {
@@ -1157,10 +1212,10 @@ export async function reportSecurityEvent(event: SecurityEvent) {
     teamId: event.teamId,
     metadata: {
       severity: event.severity,
-      details: event.details
+      details: event.details,
     },
     ipAddress: event.ipAddress,
-    userAgent: event.userAgent
+    userAgent: event.userAgent,
   });
 
   // Send alerts for high/critical events
@@ -1177,16 +1232,25 @@ async function sendSecurityAlert(event: SecurityEvent) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         text: `🚨 Security Alert: ${event.type}`,
-        attachments: [{
-          color: event.severity === 'critical' ? 'danger' : 'warning',
-          fields: [
-            { title: 'Severity', value: event.severity, short: true },
-            { title: 'User ID', value: event.userId || 'N/A', short: true },
-            { title: 'IP Address', value: event.ipAddress || 'N/A', short: true },
-            { title: 'Details', value: JSON.stringify(event.details, null, 2) }
-          ]
-        }]
-      })
+        attachments: [
+          {
+            color: event.severity === 'critical' ? 'danger' : 'warning',
+            fields: [
+              { title: 'Severity', value: event.severity, short: true },
+              { title: 'User ID', value: event.userId || 'N/A', short: true },
+              {
+                title: 'IP Address',
+                value: event.ipAddress || 'N/A',
+                short: true,
+              },
+              {
+                title: 'Details',
+                value: JSON.stringify(event.details, null, 2),
+              },
+            ],
+          },
+        ],
+      }),
     });
   }
 
@@ -1200,7 +1264,7 @@ async function sendSecurityAlert(event: SecurityEvent) {
 export function withSecurityMonitoring(handler: Function) {
   return async (req: NextApiRequest, res: NextApiResponse) => {
     const startTime = Date.now();
-    
+
     try {
       await handler(req, res);
     } catch (error) {
@@ -1214,13 +1278,13 @@ export function withSecurityMonitoring(handler: Function) {
           details: {
             path: req.url,
             method: req.method,
-            error: error.message
+            error: error.message,
           },
           ipAddress: getClientIP(req),
-          userAgent: req.headers['user-agent']
+          userAgent: req.headers['user-agent'],
         });
       }
-      
+
       throw error;
     }
   };

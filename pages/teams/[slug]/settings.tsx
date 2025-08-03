@@ -1,6 +1,11 @@
 import { Error, Loading } from '@/components/shared';
 import { AccessControl } from '@/components/shared/AccessControl';
-import { RemoveTeam, TeamSettings, TeamTab, UploadTeamLogo } from '@/components/team';
+import {
+  RemoveTeam,
+  TeamSettings,
+  TeamTab,
+  UploadTeamLogo,
+} from '@/components/team';
 import env from '@/lib/env';
 import useTeam from 'hooks/useTeam';
 import type { GetServerSidePropsContext } from 'next';

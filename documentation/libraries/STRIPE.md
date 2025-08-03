@@ -22,10 +22,12 @@ STRIPE_WEBHOOK_SECRET=whsec_...
 ### Initial Setup
 
 1. **Create Stripe Account**
+
    - Visit [stripe.com](https://stripe.com) and create an account
    - Complete business verification for production use
 
 2. **Get API Keys**
+
    - Navigate to [Dashboard > API Keys](https://dashboard.stripe.com/apikeys)
    - Copy publishable key and secret key
    - Use test keys for development, live keys for production
@@ -48,18 +50,21 @@ STRIPE_WEBHOOK_SECRET=whsec_...
 ### Key Features
 
 #### 1. Subscription Management
+
 - Create and update subscriptions
 - Handle billing cycles and invoicing
 - Support for multiple pricing tiers
 - Automatic subscription renewals
 
 #### 2. Customer Portal
+
 - Self-service billing management
 - Update payment methods
 - View invoices and payment history
 - Cancel or modify subscriptions
 
 #### 3. Webhook Processing
+
 - Real-time payment status updates
 - Subscription state synchronization
 - Failed payment handling
@@ -68,6 +73,7 @@ STRIPE_WEBHOOK_SECRET=whsec_...
 ### Testing
 
 #### Local Development
+
 ```bash
 # Install Stripe CLI
 stripe listen --forward-to localhost:4002/api/webhooks/stripe
@@ -77,6 +83,7 @@ stripe trigger checkout.session.completed
 ```
 
 #### Test Cards
+
 ```
 Success: 4242424242424242
 Decline: 4000000000000002
@@ -86,21 +93,25 @@ Decline: 4000000000000002
 ## Usage Examples
 
 ### Creating Checkout Session
+
 ```typescript
 // pages/api/teams/[slug]/payments/create-checkout-session.ts
 const session = await stripe.checkout.sessions.create({
   customer: stripeCustomerId,
   mode: 'subscription',
-  line_items: [{
-    price: priceId,
-    quantity: 1,
-  }],
+  line_items: [
+    {
+      price: priceId,
+      quantity: 1,
+    },
+  ],
   success_url: `${APP_URL}/teams/${team.slug}/billing?session_id={CHECKOUT_SESSION_ID}`,
   cancel_url: `${APP_URL}/teams/${team.slug}/billing`,
 });
 ```
 
 ### Handling Webhooks
+
 ```typescript
 // pages/api/webhooks/stripe.ts
 switch (event.type) {
@@ -117,6 +128,7 @@ switch (event.type) {
 ```
 
 ### Customer Portal Access
+
 ```typescript
 // pages/api/teams/[slug]/payments/create-portal-link.ts
 const session = await stripe.billingPortal.sessions.create({
@@ -128,24 +140,28 @@ const session = await stripe.billingPortal.sessions.create({
 ## Best Practices
 
 ### Security
+
 - Never expose secret keys to client-side code
 - Always verify webhook signatures
 - Use HTTPS for all payment-related pages
 - Implement idempotency for webhook handlers
 
 ### Error Handling
+
 - Implement retry logic for failed webhook events
 - Log all payment-related errors for debugging
 - Provide clear error messages to users
 - Handle network timeouts gracefully
 
 ### Database Synchronization
+
 - Keep local subscription state in sync with Stripe
 - Use webhooks as the source of truth for payment events
 - Implement reconciliation processes for data consistency
 - Store minimal payment data locally (refer to Stripe for details)
 
 ### Performance
+
 - Cache product and price data locally
 - Implement database connection pooling
 - Use Stripe's idempotency keys for duplicate prevention
@@ -154,6 +170,7 @@ const session = await stripe.billingPortal.sessions.create({
 ## Production Deployment
 
 ### Pre-Launch Checklist
+
 - [ ] Switch to live API keys
 - [ ] Configure production webhook endpoints
 - [ ] Test all payment flows end-to-end
@@ -162,6 +179,7 @@ const session = await stripe.billingPortal.sessions.create({
 - [ ] Verify PCI compliance requirements
 
 ### Monitoring
+
 - Track webhook delivery success rates
 - Monitor payment failure rates
 - Set up alerts for critical payment events
@@ -172,27 +190,32 @@ const session = await stripe.billingPortal.sessions.create({
 ### Common Issues
 
 **Webhook Verification Failures**
+
 - Verify webhook secret is correct
 - Check that raw request body is used for signature verification
 - Ensure proper Content-Type handling
 
 **Payment Failures**
+
 - Check Stripe Dashboard for detailed error messages
 - Verify customer has valid payment method
 - Review subscription status and billing settings
 
 **Subscription Sync Issues**
+
 - Use webhook events to update local database
 - Implement reconciliation jobs for data consistency
 - Check event processing order and timing
 
 ### Support Resources
+
 - [Stripe Documentation](https://stripe.com/docs)
 - [Stripe Status Page](https://status.stripe.com)
 - [Community Forum](https://support.stripe.com)
 - [Integration Examples](https://github.com/stripe-samples)
 
 ## Related Files
+
 - `lib/stripe.ts:1` - Stripe client configuration
 - `pages/api/webhooks/stripe.ts:1` - Main webhook handler
 - `sync-stripe.js:1` - Product synchronization script

@@ -5,6 +5,7 @@ OpenTelemetry provides observability for this SaaS application through metrics, 
 ## Overview
 
 OpenTelemetry integration provides:
+
 - Application performance monitoring (APM)
 - Custom metrics collection and reporting
 - Distributed tracing across services
@@ -50,38 +51,41 @@ npm install @opentelemetry/instrumentation-prisma
 Create `lib/telemetry.ts`:
 
 ```typescript
-import { NodeSDK } from '@opentelemetry/sdk-node'
-import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentations-node'
-import { OTLPTraceExporter } from '@opentelemetry/exporter-otlp-http'
-import { OTLPMetricExporter } from '@opentelemetry/exporter-otlp-http'
-import { PeriodicExportingMetricReader } from '@opentelemetry/sdk-metrics'
-import { Resource } from '@opentelemetry/resources'
-import { SemanticResourceAttributes } from '@opentelemetry/semantic-conventions'
+import { NodeSDK } from '@opentelemetry/sdk-node';
+import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentations-node';
+import { OTLPTraceExporter } from '@opentelemetry/exporter-otlp-http';
+import { OTLPMetricExporter } from '@opentelemetry/exporter-otlp-http';
+import { PeriodicExportingMetricReader } from '@opentelemetry/sdk-metrics';
+import { Resource } from '@opentelemetry/resources';
+import { SemanticResourceAttributes } from '@opentelemetry/semantic-conventions';
 
 // Configure resource
 const resource = new Resource({
-  [SemanticResourceAttributes.SERVICE_NAME]: process.env.OTEL_SERVICE_NAME || 'saas-app',
-  [SemanticResourceAttributes.SERVICE_VERSION]: process.env.OTEL_SERVICE_VERSION || '1.0.0',
-  [SemanticResourceAttributes.DEPLOYMENT_ENVIRONMENT]: process.env.OTEL_ENVIRONMENT || 'development',
-})
+  [SemanticResourceAttributes.SERVICE_NAME]:
+    process.env.OTEL_SERVICE_NAME || 'saas-app',
+  [SemanticResourceAttributes.SERVICE_VERSION]:
+    process.env.OTEL_SERVICE_VERSION || '1.0.0',
+  [SemanticResourceAttributes.DEPLOYMENT_ENVIRONMENT]:
+    process.env.OTEL_ENVIRONMENT || 'development',
+});
 
 // Configure trace exporter
 const traceExporter = new OTLPTraceExporter({
   url: `${process.env.OTEL_EXPORTER_OTLP_ENDPOINT}/v1/traces`,
   headers: parseHeaders(process.env.OTEL_EXPORTER_OTLP_HEADERS),
-})
+});
 
 // Configure metric exporter
 const metricExporter = new OTLPMetricExporter({
   url: `${process.env.OTEL_EXPORTER_OTLP_ENDPOINT}/v1/metrics`,
   headers: parseHeaders(process.env.OTEL_EXPORTER_OTLP_HEADERS),
-})
+});
 
 // Configure metric reader
 const metricReader = new PeriodicExportingMetricReader({
   exporter: metricExporter,
   exportIntervalMillis: parseInt(process.env.METRICS_INTERVAL || '30000'),
-})
+});
 
 // Initialize SDK
 const sdk = new NodeSDK({
@@ -95,29 +99,32 @@ const sdk = new NodeSDK({
       },
     }),
   ],
-})
+});
 
 // Start SDK
-if (process.env.NODE_ENV === 'production' || process.env.ENABLE_TELEMETRY === 'true') {
-  sdk.start()
-  console.log('OpenTelemetry started successfully')
+if (
+  process.env.NODE_ENV === 'production' ||
+  process.env.ENABLE_TELEMETRY === 'true'
+) {
+  sdk.start();
+  console.log('OpenTelemetry started successfully');
 }
 
 function parseHeaders(headersString?: string): Record<string, string> {
-  if (!headersString) return {}
-  
-  const headers: Record<string, string> = {}
-  headersString.split(',').forEach(header => {
-    const [key, value] = header.split('=')
+  if (!headersString) return {};
+
+  const headers: Record<string, string> = {};
+  headersString.split(',').forEach((header) => {
+    const [key, value] = header.split('=');
     if (key && value) {
-      headers[key.trim()] = value.trim()
+      headers[key.trim()] = value.trim();
     }
-  })
-  
-  return headers
+  });
+
+  return headers;
 }
 
-export { sdk }
+export { sdk };
 ```
 
 ### Metrics Collection
@@ -125,88 +132,105 @@ export { sdk }
 Create `lib/metrics.ts`:
 
 ```typescript
-import { metrics, trace } from '@opentelemetry/api'
+import { metrics, trace } from '@opentelemetry/api';
 
 // Get meter instance
-const meter = metrics.getMeter('saas-app-metrics', '1.0.0')
+const meter = metrics.getMeter('saas-app-metrics', '1.0.0');
 
 // Application metrics
 export const requestCounter = meter.createCounter('http_requests_total', {
   description: 'Total number of HTTP requests',
-})
+});
 
-export const requestDuration = meter.createHistogram('http_request_duration_ms', {
-  description: 'Duration of HTTP requests in milliseconds',
-})
+export const requestDuration = meter.createHistogram(
+  'http_request_duration_ms',
+  {
+    description: 'Duration of HTTP requests in milliseconds',
+  }
+);
 
 export const activeUsers = meter.createUpDownCounter('active_users_total', {
   description: 'Number of currently active users',
-})
+});
 
-export const databaseConnections = meter.createUpDownCounter('database_connections_active', {
-  description: 'Number of active database connections',
-})
+export const databaseConnections = meter.createUpDownCounter(
+  'database_connections_active',
+  {
+    description: 'Number of active database connections',
+  }
+);
 
 export const errorCounter = meter.createCounter('errors_total', {
   description: 'Total number of errors',
-})
+});
 
 // Business metrics
-export const userRegistrations = meter.createCounter('user_registrations_total', {
-  description: 'Total number of user registrations',
-})
+export const userRegistrations = meter.createCounter(
+  'user_registrations_total',
+  {
+    description: 'Total number of user registrations',
+  }
+);
 
-export const subscriptionChanges = meter.createCounter('subscription_changes_total', {
-  description: 'Total number of subscription changes',
-})
+export const subscriptionChanges = meter.createCounter(
+  'subscription_changes_total',
+  {
+    description: 'Total number of subscription changes',
+  }
+);
 
 export const apiKeyUsage = meter.createCounter('api_key_usage_total', {
   description: 'Total number of API key usages',
-})
+});
 
 export const teamOperations = meter.createCounter('team_operations_total', {
   description: 'Total number of team operations',
-})
+});
 
 // Performance metrics
 export const memoryUsage = meter.createObservableGauge('memory_usage_bytes', {
   description: 'Memory usage in bytes',
-})
+});
 
 export const cpuUsage = meter.createObservableGauge('cpu_usage_percent', {
   description: 'CPU usage percentage',
-})
+});
 
 // Register observable metrics
 memoryUsage.addCallback((result) => {
-  const used = process.memoryUsage()
-  result.observe(used.heapUsed, { type: 'heap' })
-  result.observe(used.rss, { type: 'rss' })
-})
+  const used = process.memoryUsage();
+  result.observe(used.heapUsed, { type: 'heap' });
+  result.observe(used.rss, { type: 'rss' });
+});
 
 cpuUsage.addCallback((result) => {
-  const startUsage = process.cpuUsage()
+  const startUsage = process.cpuUsage();
   setTimeout(() => {
-    const endUsage = process.cpuUsage(startUsage)
-    const totalUsage = endUsage.user + endUsage.system
-    result.observe(totalUsage / 1000000) // Convert to percentage
-  }, 100)
-})
+    const endUsage = process.cpuUsage(startUsage);
+    const totalUsage = endUsage.user + endUsage.system;
+    result.observe(totalUsage / 1000000); // Convert to percentage
+  }, 100);
+});
 
 // Utility functions for custom metrics
 export class MetricsCollector {
-  static recordRequest(method: string, route: string, statusCode: number, duration: number) {
+  static recordRequest(
+    method: string,
+    route: string,
+    statusCode: number,
+    duration: number
+  ) {
     requestCounter.add(1, {
       method,
       route,
       status_code: statusCode.toString(),
-    })
+    });
 
     requestDuration.record(duration, {
       method,
       route,
       status_code: statusCode.toString(),
-    })
+    });
   }
 
   static recordError(errorType: string, route?: string, userId?: string) {
@@ -214,42 +238,47 @@ export class MetricsCollector {
       error_type: errorType,
       route: route || 'unknown',
       user_id: userId || 'anonymous',
-    })
+    });
   }
 
   static recordUserRegistration(method: 'email' | 'oauth', plan: string) {
     userRegistrations.add(1, {
       method,
       plan,
-    })
+    });
   }
 
-  static recordSubscriptionChange(action: 'subscribe' | 'upgrade' | 'downgrade' | 'cancel', plan: string) {
+  static recordSubscriptionChange(
+    action: 'subscribe' | 'upgrade' | 'downgrade' | 'cancel',
+    plan: string
+  ) {
     subscriptionChanges.add(1, {
       action,
       plan,
-    })
+    });
   }
 
   static recordApiKeyUsage(teamId: string, keyId: string) {
     apiKeyUsage.add(1, {
       team_id: teamId,
       key_id: keyId,
-    })
+    });
   }
 
-  static recordTeamOperation(operation: 'create' | 'update' | 'delete' | 'member_add' | 'member_remove') {
+  static recordTeamOperation(
+    operation: 'create' | 'update' | 'delete' | 'member_add' | 'member_remove'
+  ) {
     teamOperations.add(1, {
       operation,
-    })
+    });
   }
 
   static updateActiveUsers(count: number) {
-    activeUsers.add(count)
+    activeUsers.add(count);
   }
 
   static updateDatabaseConnections(change: number) {
-    databaseConnections.add(change)
+    databaseConnections.add(change);
   }
 }
 ```
@@ -261,16 +290,16 @@ export class MetricsCollector {
 Create `lib/middleware/telemetry.ts`:
 
 ```typescript
-import { NextApiRequest, NextApiResponse } from 'next'
-import { trace, context } from '@opentelemetry/api'
-import { MetricsCollector } from '@/lib/metrics'
+import { NextApiRequest, NextApiResponse } from 'next';
+import { trace, context } from '@opentelemetry/api';
+import { MetricsCollector } from '@/lib/metrics';
 
 export function withTelemetry(
   handler: (req: NextApiRequest, res: NextApiResponse) => Promise<void>
 ) {
   return async (req: NextApiRequest, res: NextApiResponse) => {
-    const tracer = trace.getTracer('api-routes')
-    const startTime = Date.now()
+    const tracer = trace.getTracer('api-routes');
+    const startTime = Date.now();
 
     return tracer.startActiveSpan(`${req.method} ${req.url}`, async (span) => {
       try {
@@ -280,55 +309,60 @@ export function withTelemetry(
           'http.url': req.url || '',
           'http.user_agent': req.headers['user-agent'] || '',
           'http.remote_addr': req.socket.remoteAddress || '',
-        })
+        });
 
         // Add custom context
         context.with(context.active(), () => {
-          span.setAttribute('custom.route', req.url || '')
-        })
+          span.setAttribute('custom.route', req.url || '');
+        });
 
-        await handler(req, res)
+        await handler(req, res);
 
         // Record successful request
-        const duration = Date.now() - startTime
+        const duration = Date.now() - startTime;
         MetricsCollector.recordRequest(
           req.method || 'UNKNOWN',
           req.url || '',
           res.statusCode,
           duration
-        )
+        );
 
         span.setAttributes({
           'http.status_code': res.statusCode,
           'http.response_time_ms': duration,
-        })
+        });
 
-        span.setStatus({ code: 1 }) // OK
+        span.setStatus({ code: 1 }); // OK
       } catch (error) {
         // Record error
-        const duration = Date.now() - startTime
+        const duration = Date.now() - startTime;
         MetricsCollector.recordError(
           error instanceof Error ? error.constructor.name : 'UnknownError',
           req.url,
           req.headers.authorization ? 'authenticated' : 'anonymous'
-        )
+        );
 
         MetricsCollector.recordRequest(
           req.method || 'UNKNOWN',
           req.url || '',
           500,
           duration
-        )
+        );
 
-        span.recordException(error instanceof Error ? error : new Error(String(error)))
-        span.setStatus({ code: 2, message: error instanceof Error ? error.message : String(error) })
+        span.recordException(
+          error instanceof Error ? error : new Error(String(error))
+        );
+        span.setStatus({
+          code: 2,
+          message: error instanceof Error ? error.message : String(error),
+        });
 
-        throw error
+        throw error;
       } finally {
-        span.end()
+        span.end();
       }
-    })
-  }
+    });
+  };
 }
 ```
 
@@ -336,24 +370,24 @@ export function withTelemetry(
 
 ```typescript
 // pages/api/users/index.ts
-import { withTelemetry } from '@/lib/middleware/telemetry'
-import { MetricsCollector } from '@/lib/metrics'
+import { withTelemetry } from '@/lib/middleware/telemetry';
+import { MetricsCollector } from '@/lib/metrics';
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'POST') {
     // Create user logic
-    const user = await createUser(req.body)
-    
+    const user = await createUser(req.body);
+
     // Record business metric
-    MetricsCollector.recordUserRegistration('email', 'free')
-    
-    res.status(201).json(user)
+    MetricsCollector.recordUserRegistration('email', 'free');
+
+    res.status(201).json(user);
   } else {
-    res.status(405).json({ error: 'Method not allowed' })
+    res.status(405).json({ error: 'Method not allowed' });
   }
 }
 
-export default withTelemetry(handler)
+export default withTelemetry(handler);
 ```
 
 ## Custom Traces
@@ -362,11 +396,11 @@ export default withTelemetry(handler)
 
 ```typescript
 // lib/database/traced-operations.ts
-import { trace } from '@opentelemetry/api'
-import { prisma } from '@/lib/prisma'
-import { MetricsCollector } from '@/lib/metrics'
+import { trace } from '@opentelemetry/api';
+import { prisma } from '@/lib/prisma';
+import { MetricsCollector } from '@/lib/metrics';
 
-const tracer = trace.getTracer('database-operations')
+const tracer = trace.getTracer('database-operations');
 
 export class TracedDatabaseOperations {
   static async findUser(email: string) {
@@ -375,23 +409,25 @@ export class TracedDatabaseOperations {
         'db.operation': 'findUnique',
         'db.table': 'users',
         'db.query.email': email,
-      })
+      });
 
       try {
         const user = await prisma.user.findUnique({
           where: { email },
-        })
+        });
 
-        span.setAttribute('db.result.found', !!user)
-        return user
+        span.setAttribute('db.result.found', !!user);
+        return user;
       } catch (error) {
-        span.recordException(error instanceof Error ? error : new Error(String(error)))
-        MetricsCollector.recordError('DatabaseError', 'user.findUnique')
-        throw error
+        span.recordException(
+          error instanceof Error ? error : new Error(String(error))
+        );
+        MetricsCollector.recordError('DatabaseError', 'user.findUnique');
+        throw error;
       } finally {
-        span.end()
+        span.end();
       }
-    })
+    });
   }
 
   static async createTeam(data: any, userId: string) {
@@ -400,7 +436,7 @@ export class TracedDatabaseOperations {
         'db.operation': 'create',
         'db.table': 'teams',
         'user.id': userId,
-      })
+      });
 
       try {
         const team = await prisma.team.create({
@@ -414,20 +450,22 @@ export class TracedDatabaseOperations {
               },
             },
           },
-        })
+        });
 
-        MetricsCollector.recordTeamOperation('create')
-        span.setAttribute('team.id', team.id)
-        
-        return team
+        MetricsCollector.recordTeamOperation('create');
+        span.setAttribute('team.id', team.id);
+
+        return team;
       } catch (error) {
-        span.recordException(error instanceof Error ? error : new Error(String(error)))
-        MetricsCollector.recordError('DatabaseError', 'team.create')
-        throw error
+        span.recordException(
+          error instanceof Error ? error : new Error(String(error))
+        );
+        MetricsCollector.recordError('DatabaseError', 'team.create');
+        throw error;
       } finally {
-        span.end()
+        span.end();
       }
-    })
+    });
   }
 }
 ```
@@ -436,10 +474,10 @@ export class TracedDatabaseOperations {
 
 ```typescript
 // lib/external/traced-api.ts
-import { trace } from '@opentelemetry/api'
-import { MetricsCollector } from '@/lib/metrics'
+import { trace } from '@opentelemetry/api';
+import { MetricsCollector } from '@/lib/metrics';
 
-const tracer = trace.getTracer('external-api')
+const tracer = trace.getTracer('external-api');
 
 export class TracedApiClient {
   static async fetchWithTracing(url: string, options: RequestInit = {}) {
@@ -448,39 +486,41 @@ export class TracedApiClient {
         'http.method': options.method || 'GET',
         'http.url': url,
         'http.client': 'fetch',
-      })
+      });
 
-      const startTime = Date.now()
+      const startTime = Date.now();
 
       try {
-        const response = await fetch(url, options)
-        const duration = Date.now() - startTime
+        const response = await fetch(url, options);
+        const duration = Date.now() - startTime;
 
         span.setAttributes({
           'http.status_code': response.status,
           'http.response_time_ms': duration,
-        })
+        });
 
         if (!response.ok) {
-          MetricsCollector.recordError('HttpError', url)
-          span.setStatus({ code: 2, message: `HTTP ${response.status}` })
+          MetricsCollector.recordError('HttpError', url);
+          span.setStatus({ code: 2, message: `HTTP ${response.status}` });
         }
 
-        return response
+        return response;
       } catch (error) {
-        const duration = Date.now() - startTime
-        
-        span.recordException(error instanceof Error ? error : new Error(String(error)))
+        const duration = Date.now() - startTime;
+
+        span.recordException(
+          error instanceof Error ? error : new Error(String(error))
+        );
         span.setAttributes({
           'http.response_time_ms': duration,
-        })
-        
-        MetricsCollector.recordError('NetworkError', url)
-        throw error
+        });
+
+        MetricsCollector.recordError('NetworkError', url);
+        throw error;
       } finally {
-        span.end()
+        span.end();
       }
-    })
+    });
   }
 }
 ```
@@ -492,21 +532,21 @@ export class TracedApiClient {
 Create `pages/api/metrics/index.ts`:
 
 ```typescript
-import { NextApiRequest, NextApiResponse } from 'next'
-import { prisma } from '@/lib/prisma'
+import { NextApiRequest, NextApiResponse } from 'next';
+import { prisma } from '@/lib/prisma';
 
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
   if (req.method !== 'GET') {
-    return res.status(405).json({ error: 'Method not allowed' })
+    return res.status(405).json({ error: 'Method not allowed' });
   }
 
   try {
-    const now = new Date()
-    const last24Hours = new Date(now.getTime() - 24 * 60 * 60 * 1000)
-    const last7Days = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
+    const now = new Date();
+    const last24Hours = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+    const last7Days = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
 
     const [
       totalUsers,
@@ -536,7 +576,7 @@ export default async function handler(
         },
       }),
       prisma.apiKey.count(),
-    ])
+    ]);
 
     res.status(200).json({
       users: {
@@ -552,10 +592,10 @@ export default async function handler(
         total: totalApiKeys,
       },
       timestamp: now.toISOString(),
-    })
+    });
   } catch (error) {
-    MetricsCollector.recordError('MetricsApiError')
-    res.status(500).json({ error: 'Failed to fetch metrics' })
+    MetricsCollector.recordError('MetricsApiError');
+    res.status(500).json({ error: 'Failed to fetch metrics' });
   }
 }
 ```
@@ -601,7 +641,7 @@ export default function MetricsDashboard() {
     }
 
     fetchMetrics()
-    
+
     // Refresh every 30 seconds
     const interval = setInterval(fetchMetrics, 30000)
     return () => clearInterval(interval)
@@ -655,36 +695,36 @@ export default function MetricsDashboard() {
 
 ```typescript
 // hooks/usePerformanceMetrics.ts
-import { useEffect } from 'react'
-import { MetricsCollector } from '@/lib/metrics'
+import { useEffect } from 'react';
+import { MetricsCollector } from '@/lib/metrics';
 
 export function usePerformanceMetrics(pageName: string) {
   useEffect(() => {
-    const startTime = performance.now()
+    const startTime = performance.now();
 
     // Record page load
     const handleLoad = () => {
-      const loadTime = performance.now() - startTime
-      MetricsCollector.recordRequest('GET', pageName, 200, loadTime)
-    }
+      const loadTime = performance.now() - startTime;
+      MetricsCollector.recordRequest('GET', pageName, 200, loadTime);
+    };
 
     // Record when page becomes visible
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible') {
-        MetricsCollector.updateActiveUsers(1)
+        MetricsCollector.updateActiveUsers(1);
       } else {
-        MetricsCollector.updateActiveUsers(-1)
+        MetricsCollector.updateActiveUsers(-1);
       }
-    }
+    };
 
-    window.addEventListener('load', handleLoad)
-    document.addEventListener('visibilitychange', handleVisibilityChange)
+    window.addEventListener('load', handleLoad);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
 
     return () => {
-      window.removeEventListener('load', handleLoad)
-      document.removeEventListener('visibilitychange', handleVisibilityChange)
-    }
-  }, [pageName])
+      window.removeEventListener('load', handleLoad);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [pageName]);
 }
 ```
 
@@ -750,37 +790,37 @@ export class ErrorBoundary extends Component<Props, State> {
 
 ```typescript
 // lib/honeycomb.ts
-import { trace } from '@opentelemetry/api'
+import { trace } from '@opentelemetry/api';
 
 export class HoneycombIntegration {
   static addCustomFields(fields: Record<string, any>) {
-    const span = trace.getActiveSpan()
+    const span = trace.getActiveSpan();
     if (span) {
       Object.entries(fields).forEach(([key, value]) => {
-        span.setAttribute(`custom.${key}`, value)
-      })
+        span.setAttribute(`custom.${key}`, value);
+      });
     }
   }
 
   static addUserContext(userId: string, email?: string, plan?: string) {
-    const span = trace.getActiveSpan()
+    const span = trace.getActiveSpan();
     if (span) {
       span.setAttributes({
         'user.id': userId,
         'user.email': email || '',
         'user.plan': plan || '',
-      })
+      });
     }
   }
 
   static addTeamContext(teamId: string, teamName: string, memberCount: number) {
-    const span = trace.getActiveSpan()
+    const span = trace.getActiveSpan();
     if (span) {
       span.setAttributes({
         'team.id': teamId,
         'team.name': teamName,
         'team.member_count': memberCount,
-      })
+      });
     }
   }
 }
@@ -799,16 +839,16 @@ export const mockTracer = {
       setStatus: jest.fn(),
       recordException: jest.fn(),
       end: jest.fn(),
-    })
+    });
   }),
-}
+};
 
 export const mockMetrics = {
   recordRequest: jest.fn(),
   recordError: jest.fn(),
   recordUserRegistration: jest.fn(),
   updateActiveUsers: jest.fn(),
-}
+};
 
 jest.mock('@opentelemetry/api', () => ({
   trace: {
@@ -825,7 +865,7 @@ jest.mock('@opentelemetry/api', () => ({
       createUpDownCounter: () => ({ add: jest.fn() }),
     }),
   },
-}))
+}));
 ```
 
 ## Resources

@@ -5,6 +5,7 @@ Slack integration provides internal notifications and alerts for team activities
 ## Overview
 
 Slack integration enables:
+
 - Internal team notifications for system events
 - Error alerts and monitoring notifications
 - User activity alerts (registrations, subscriptions)
@@ -41,58 +42,58 @@ Create `lib/slack.ts`:
 
 ```typescript
 interface SlackMessage {
-  channel?: string
-  username?: string
-  icon_emoji?: string
-  text?: string
-  attachments?: SlackAttachment[]
-  blocks?: SlackBlock[]
+  channel?: string;
+  username?: string;
+  icon_emoji?: string;
+  text?: string;
+  attachments?: SlackAttachment[];
+  blocks?: SlackBlock[];
 }
 
 interface SlackAttachment {
-  color?: 'good' | 'warning' | 'danger' | string
-  pretext?: string
-  title?: string
-  title_link?: string
-  text?: string
-  fields?: SlackField[]
-  footer?: string
-  footer_icon?: string
-  ts?: number
+  color?: 'good' | 'warning' | 'danger' | string;
+  pretext?: string;
+  title?: string;
+  title_link?: string;
+  text?: string;
+  fields?: SlackField[];
+  footer?: string;
+  footer_icon?: string;
+  ts?: number;
 }
 
 interface SlackField {
-  title: string
-  value: string
-  short?: boolean
+  title: string;
+  value: string;
+  short?: boolean;
 }
 
 interface SlackBlock {
-  type: string
+  type: string;
   text?: {
-    type: string
-    text: string
-  }
-  elements?: any[]
+    type: string;
+    text: string;
+  };
+  elements?: any[];
 }
 
 class SlackNotifier {
-  private webhookUrl: string
-  private defaultChannel: string
-  private defaultUsername: string
-  private defaultIcon: string
+  private webhookUrl: string;
+  private defaultChannel: string;
+  private defaultUsername: string;
+  private defaultIcon: string;
 
   constructor() {
-    this.webhookUrl = process.env.SLACK_WEBHOOK_URL || ''
-    this.defaultChannel = process.env.SLACK_CHANNEL || '#notifications'
-    this.defaultUsername = process.env.SLACK_BOT_NAME || 'SaaS Bot'
-    this.defaultIcon = process.env.SLACK_ICON_EMOJI || ':robot_face:'
+    this.webhookUrl = process.env.SLACK_WEBHOOK_URL || '';
+    this.defaultChannel = process.env.SLACK_CHANNEL || '#notifications';
+    this.defaultUsername = process.env.SLACK_BOT_NAME || 'SaaS Bot';
+    this.defaultIcon = process.env.SLACK_ICON_EMOJI || ':robot_face:';
   }
 
   private async sendMessage(message: SlackMessage): Promise<boolean> {
     if (!this.webhookUrl) {
-      console.warn('Slack webhook URL not configured')
-      return false
+      console.warn('Slack webhook URL not configured');
+      return false;
     }
 
     try {
@@ -101,7 +102,7 @@ class SlackNotifier {
         username: message.username || this.defaultUsername,
         icon_emoji: message.icon_emoji || this.defaultIcon,
         ...message,
-      }
+      };
 
       const response = await fetch(this.webhookUrl, {
         method: 'POST',
@@ -109,17 +110,17 @@ class SlackNotifier {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(payload),
-      })
+      });
 
       if (!response.ok) {
-        console.error('Slack notification failed:', response.statusText)
-        return false
+        console.error('Slack notification failed:', response.statusText);
+        return false;
       }
 
-      return true
+      return true;
     } catch (error) {
-      console.error('Slack notification error:', error)
-      return false
+      console.error('Slack notification error:', error);
+      return false;
     }
   }
 
@@ -127,10 +128,13 @@ class SlackNotifier {
     return this.sendMessage({
       text,
       channel,
-    })
+    });
   }
 
-  async sendError(error: Error, context?: Record<string, any>): Promise<boolean> {
+  async sendError(
+    error: Error,
+    context?: Record<string, any>
+  ): Promise<boolean> {
     const fields: SlackField[] = [
       {
         title: 'Error Message',
@@ -142,7 +146,7 @@ class SlackNotifier {
         value: error.stack?.substring(0, 500) || 'N/A',
         short: false,
       },
-    ]
+    ];
 
     if (context) {
       Object.entries(context).forEach(([key, value]) => {
@@ -150,8 +154,8 @@ class SlackNotifier {
           title: key,
           value: String(value),
           short: true,
-        })
-      })
+        });
+      });
     }
 
     return this.sendMessage({
@@ -164,13 +168,13 @@ class SlackNotifier {
           ts: Math.floor(Date.now() / 1000),
         },
       ],
-    })
+    });
   }
 
   async sendUserRegistration(user: {
-    name?: string
-    email: string
-    plan?: string
+    name?: string;
+    email: string;
+    plan?: string;
   }): Promise<boolean> {
     return this.sendMessage({
       attachments: [
@@ -198,28 +202,28 @@ class SlackNotifier {
           ts: Math.floor(Date.now() / 1000),
         },
       ],
-    })
+    });
   }
 
   async sendSubscriptionUpdate(data: {
-    userEmail: string
-    plan: string
-    action: 'subscribed' | 'upgraded' | 'downgraded' | 'cancelled'
-    amount?: number
+    userEmail: string;
+    plan: string;
+    action: 'subscribed' | 'upgraded' | 'downgraded' | 'cancelled';
+    amount?: number;
   }): Promise<boolean> {
     const colors = {
       subscribed: 'good',
-      upgraded: 'good', 
+      upgraded: 'good',
       downgraded: 'warning',
       cancelled: 'danger',
-    }
+    };
 
     const emojis = {
       subscribed: '💳',
       upgraded: '⬆️',
       downgraded: '⬇️',
       cancelled: '❌',
-    }
+    };
 
     const fields: SlackField[] = [
       {
@@ -232,14 +236,14 @@ class SlackNotifier {
         value: data.plan,
         short: true,
       },
-    ]
+    ];
 
     if (data.amount) {
       fields.push({
         title: 'Amount',
         value: `$${data.amount}`,
         short: true,
-      })
+      });
     }
 
     return this.sendMessage({
@@ -252,28 +256,28 @@ class SlackNotifier {
           ts: Math.floor(Date.now() / 1000),
         },
       ],
-    })
+    });
   }
 
   async sendSystemAlert(alert: {
-    title: string
-    message: string
-    severity: 'info' | 'warning' | 'critical'
-    metadata?: Record<string, any>
+    title: string;
+    message: string;
+    severity: 'info' | 'warning' | 'critical';
+    metadata?: Record<string, any>;
   }): Promise<boolean> {
     const colors = {
       info: '#36a3eb',
       warning: 'warning',
       critical: 'danger',
-    }
+    };
 
     const emojis = {
       info: 'ℹ️',
-      warning: '⚠️', 
+      warning: '⚠️',
       critical: '🚨',
-    }
+    };
 
-    const fields: SlackField[] = []
+    const fields: SlackField[] = [];
 
     if (alert.metadata) {
       Object.entries(alert.metadata).forEach(([key, value]) => {
@@ -281,8 +285,8 @@ class SlackNotifier {
           title: key,
           value: String(value),
           short: true,
-        })
-      })
+        });
+      });
     }
 
     return this.sendMessage({
@@ -296,14 +300,14 @@ class SlackNotifier {
           ts: Math.floor(Date.now() / 1000),
         },
       ],
-    })
+    });
   }
 
   async sendDailyReport(data: {
-    newUsers: number
-    activeUsers: number
-    revenue: number
-    errors: number
+    newUsers: number;
+    activeUsers: number;
+    revenue: number;
+    errors: number;
   }): Promise<boolean> {
     return this.sendMessage({
       blocks: [
@@ -318,7 +322,7 @@ class SlackNotifier {
           type: 'section',
           text: {
             type: 'mrkdwn',
-            text: '*Here\'s your daily summary:*',
+            text: "*Here's your daily summary:*",
           },
         },
         {
@@ -329,11 +333,11 @@ class SlackNotifier {
           },
         },
       ],
-    })
+    });
   }
 }
 
-export const slack = new SlackNotifier()
+export const slack = new SlackNotifier();
 ```
 
 ## Usage Examples
@@ -341,28 +345,28 @@ export const slack = new SlackNotifier()
 ### Error Notifications
 
 ```typescript
-import { slack } from '@/lib/slack'
+import { slack } from '@/lib/slack';
 
 // In API routes or error boundaries
 try {
   // Some operation that might fail
-  await riskyOperation()
+  await riskyOperation();
 } catch (error) {
   // Send error to Slack
   await slack.sendError(error as Error, {
     'API Route': '/api/users',
     'User ID': userId,
-    'Timestamp': new Date().toISOString(),
-  })
-  
-  throw error // Re-throw for proper error handling
+    Timestamp: new Date().toISOString(),
+  });
+
+  throw error; // Re-throw for proper error handling
 }
 ```
 
 ### User Activity Notifications
 
 ```typescript
-import { slack } from '@/lib/slack'
+import { slack } from '@/lib/slack';
 
 // When a user registers
 export async function handleUserRegistration(user: User) {
@@ -370,7 +374,7 @@ export async function handleUserRegistration(user: User) {
     name: user.name,
     email: user.email,
     plan: 'Free',
-  })
+  });
 }
 
 // When subscription changes
@@ -383,14 +387,14 @@ export async function handleSubscriptionChange(
     plan: subscription.plan,
     action: 'subscribed',
     amount: subscription.amount,
-  })
+  });
 }
 ```
 
 ### System Monitoring
 
 ```typescript
-import { slack } from '@/lib/slack'
+import { slack } from '@/lib/slack';
 
 // Database connection issues
 export async function notifyDatabaseIssue(error: Error) {
@@ -399,11 +403,11 @@ export async function notifyDatabaseIssue(error: Error) {
     message: 'Unable to connect to the database',
     severity: 'critical',
     metadata: {
-      'Error': error.message,
-      'Service': 'PostgreSQL',
-      'Environment': process.env.NODE_ENV,
+      Error: error.message,
+      Service: 'PostgreSQL',
+      Environment: process.env.NODE_ENV,
     },
-  })
+  });
 }
 
 // High memory usage
@@ -414,9 +418,9 @@ export async function notifyHighMemoryUsage(usage: number) {
     severity: usage > 90 ? 'critical' : 'warning',
     metadata: {
       'Memory Usage': `${usage}%`,
-      'Threshold': '80%',
+      Threshold: '80%',
     },
-  })
+  });
 }
 ```
 
@@ -426,41 +430,41 @@ export async function notifyHighMemoryUsage(usage: number) {
 
 ```typescript
 // pages/api/auth/register.ts
-import { NextApiRequest, NextApiResponse } from 'next'
-import { slack } from '@/lib/slack'
-import { prisma } from '@/lib/prisma'
+import { NextApiRequest, NextApiResponse } from 'next';
+import { slack } from '@/lib/slack';
+import { prisma } from '@/lib/prisma';
 
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
   if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' })
+    return res.status(405).json({ error: 'Method not allowed' });
   }
 
   try {
-    const { name, email, password } = req.body
+    const { name, email, password } = req.body;
 
     // Create user
     const user = await prisma.user.create({
       data: { name, email, password: hashedPassword },
-    })
+    });
 
     // Send Slack notification
     await slack.sendUserRegistration({
       name: user.name,
       email: user.email,
-    })
+    });
 
-    res.status(201).json({ user })
+    res.status(201).json({ user });
   } catch (error) {
     // Send error notification
     await slack.sendError(error as Error, {
       'API Route': '/api/auth/register',
       'Request Body': JSON.stringify(req.body),
-    })
+    });
 
-    res.status(500).json({ error: 'Registration failed' })
+    res.status(500).json({ error: 'Registration failed' });
   }
 }
 ```
@@ -469,13 +473,13 @@ export default async function handler(
 
 ```typescript
 // pages/api/webhooks/stripe.ts
-import { slack } from '@/lib/slack'
+import { slack } from '@/lib/slack';
 
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  const event = req.body
+  const event = req.body;
 
   switch (event.type) {
     case 'customer.subscription.created':
@@ -484,8 +488,8 @@ export default async function handler(
         plan: event.data.object.items.data[0].price.nickname,
         action: 'subscribed',
         amount: event.data.object.items.data[0].price.unit_amount / 100,
-      })
-      break
+      });
+      break;
 
     case 'customer.subscription.updated':
       await slack.sendSubscriptionUpdate({
@@ -493,19 +497,19 @@ export default async function handler(
         plan: event.data.object.items.data[0].price.nickname,
         action: 'upgraded',
         amount: event.data.object.items.data[0].price.unit_amount / 100,
-      })
-      break
+      });
+      break;
 
     case 'customer.subscription.deleted':
       await slack.sendSubscriptionUpdate({
         userEmail: event.data.object.customer.email,
         plan: 'Cancelled',
         action: 'cancelled',
-      })
-      break
+      });
+      break;
   }
 
-  res.status(200).json({ received: true })
+  res.status(200).json({ received: true });
 }
 ```
 
@@ -515,9 +519,9 @@ export default async function handler(
 
 ```typescript
 // pages/api/cron/daily-report.ts
-import { NextApiRequest, NextApiResponse } from 'next'
-import { slack } from '@/lib/slack'
-import { prisma } from '@/lib/prisma'
+import { NextApiRequest, NextApiResponse } from 'next';
+import { slack } from '@/lib/slack';
+import { prisma } from '@/lib/prisma';
 
 export default async function handler(
   req: NextApiRequest,
@@ -525,16 +529,16 @@ export default async function handler(
 ) {
   // Verify cron job authorization
   if (req.headers.authorization !== `Bearer ${process.env.CRON_SECRET}`) {
-    return res.status(401).json({ error: 'Unauthorized' })
+    return res.status(401).json({ error: 'Unauthorized' });
   }
 
   try {
-    const yesterday = new Date()
-    yesterday.setDate(yesterday.getDate() - 1)
-    yesterday.setHours(0, 0, 0, 0)
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    yesterday.setHours(0, 0, 0, 0);
 
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
 
     // Get metrics
     const [newUsers, activeUsers, revenue, errors] = await Promise.all([
@@ -557,22 +561,22 @@ export default async function handler(
       0, // Implement based on your billing system
       // Count errors from logs
       0, // Implement based on your error tracking
-    ])
+    ]);
 
     await slack.sendDailyReport({
       newUsers,
       activeUsers,
       revenue,
       errors,
-    })
+    });
 
-    res.status(200).json({ success: true })
+    res.status(200).json({ success: true });
   } catch (error) {
     await slack.sendError(error as Error, {
       'Cron Job': 'daily-report',
-    })
+    });
 
-    res.status(500).json({ error: 'Report generation failed' })
+    res.status(500).json({ error: 'Report generation failed' });
   }
 }
 ```
@@ -599,23 +603,23 @@ Create `vercel.json`:
 ```typescript
 // Custom function for team-related notifications
 export async function notifyTeamActivity(activity: {
-  type: 'member_added' | 'member_removed' | 'role_changed'
-  teamName: string
-  userEmail: string
-  actorEmail: string
-  details?: string
+  type: 'member_added' | 'member_removed' | 'role_changed';
+  teamName: string;
+  userEmail: string;
+  actorEmail: string;
+  details?: string;
 }) {
   const emojis = {
     member_added: '➕',
     member_removed: '➖',
     role_changed: '🔄',
-  }
+  };
 
   const titles = {
     member_added: 'Team Member Added',
     member_removed: 'Team Member Removed',
     role_changed: 'Team Role Changed',
-  }
+  };
 
   await slack.sendMessage({
     attachments: [
@@ -638,17 +642,21 @@ export async function notifyTeamActivity(activity: {
             value: activity.actorEmail,
             short: true,
           },
-          ...(activity.details ? [{
-            title: 'Details',
-            value: activity.details,
-            short: false,
-          }] : []),
+          ...(activity.details
+            ? [
+                {
+                  title: 'Details',
+                  value: activity.details,
+                  short: false,
+                },
+              ]
+            : []),
         ],
         footer: 'Team Management',
         ts: Math.floor(Date.now() / 1000),
       },
     ],
-  })
+  });
 }
 ```
 
@@ -658,7 +666,7 @@ export async function notifyTeamActivity(activity: {
 
 ```typescript
 // tests/helpers/slack.ts
-import { slack } from '@/lib/slack'
+import { slack } from '@/lib/slack';
 
 // Mock Slack for testing
 export const mockSlack = {
@@ -667,45 +675,45 @@ export const mockSlack = {
   sendUserRegistration: jest.fn().mockResolvedValue(true),
   sendSubscriptionUpdate: jest.fn().mockResolvedValue(true),
   sendSystemAlert: jest.fn().mockResolvedValue(true),
-}
+};
 
 // Replace slack instance in tests
 jest.mock('@/lib/slack', () => ({
   slack: mockSlack,
-}))
+}));
 ```
 
 ### Integration Tests
 
 ```typescript
 // tests/slack.test.ts
-import { slack } from '@/lib/slack'
+import { slack } from '@/lib/slack';
 
 describe('Slack Integration', () => {
   beforeEach(() => {
     // Setup test environment variables
-    process.env.SLACK_WEBHOOK_URL = 'https://hooks.slack.com/test'
-  })
+    process.env.SLACK_WEBHOOK_URL = 'https://hooks.slack.com/test';
+  });
 
   it('should send user registration notification', async () => {
     const result = await slack.sendUserRegistration({
       name: 'Test User',
       email: 'test@example.com',
       plan: 'Pro',
-    })
+    });
 
-    expect(result).toBe(true)
-  })
+    expect(result).toBe(true);
+  });
 
   it('should handle errors gracefully', async () => {
     // Remove webhook URL to simulate failure
-    delete process.env.SLACK_WEBHOOK_URL
+    delete process.env.SLACK_WEBHOOK_URL;
 
-    const result = await slack.sendText('Test message')
+    const result = await slack.sendText('Test message');
 
-    expect(result).toBe(false)
-  })
-})
+    expect(result).toBe(false);
+  });
+});
 ```
 
 ## Security Considerations
@@ -715,13 +723,15 @@ describe('Slack Integration', () => {
 ```typescript
 // Validate webhook URL format
 function validateWebhookUrl(url: string): boolean {
-  return url.startsWith('https://hooks.slack.com/services/')
+  return url.startsWith('https://hooks.slack.com/services/');
 }
 
 // Environment validation
-if (process.env.SLACK_WEBHOOK_URL && 
-    !validateWebhookUrl(process.env.SLACK_WEBHOOK_URL)) {
-  console.warn('Invalid Slack webhook URL format')
+if (
+  process.env.SLACK_WEBHOOK_URL &&
+  !validateWebhookUrl(process.env.SLACK_WEBHOOK_URL)
+) {
+  console.warn('Invalid Slack webhook URL format');
 }
 ```
 
@@ -730,26 +740,26 @@ if (process.env.SLACK_WEBHOOK_URL &&
 ```typescript
 // Simple rate limiting for Slack notifications
 class RateLimitedSlackNotifier extends SlackNotifier {
-  private lastSent: Map<string, number> = new Map()
-  private rateLimitMs: number = 60000 // 1 minute
+  private lastSent: Map<string, number> = new Map();
+  private rateLimitMs: number = 60000; // 1 minute
 
   protected async sendMessage(message: SlackMessage): Promise<boolean> {
-    const key = JSON.stringify(message)
-    const now = Date.now()
-    const lastSentTime = this.lastSent.get(key)
+    const key = JSON.stringify(message);
+    const now = Date.now();
+    const lastSentTime = this.lastSent.get(key);
 
     if (lastSentTime && now - lastSentTime < this.rateLimitMs) {
-      console.log('Slack message rate limited')
-      return false
+      console.log('Slack message rate limited');
+      return false;
     }
 
-    const result = await super.sendMessage(message)
-    
+    const result = await super.sendMessage(message);
+
     if (result) {
-      this.lastSent.set(key, now)
+      this.lastSent.set(key, now);
     }
 
-    return result
+    return result;
   }
 }
 ```

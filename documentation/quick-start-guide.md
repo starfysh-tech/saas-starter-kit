@@ -97,6 +97,7 @@ docker-compose up -d
 ```
 
 This starts PostgreSQL on `localhost:5432` with credentials:
+
 - Username: `postgres`
 - Password: `password`
 - Database: `saas_starter_kit`
@@ -416,6 +417,7 @@ npx prisma migrate deploy
 ### Common Issues
 
 **Database Connection Error**
+
 ```bash
 # Check if PostgreSQL is running
 docker-compose ps
@@ -425,6 +427,7 @@ echo $DATABASE_URL
 ```
 
 **Authentication Not Working**
+
 ```bash
 # Check NextAuth configuration
 echo $NEXTAUTH_URL
@@ -435,6 +438,7 @@ npm run test-email
 ```
 
 **Build Failures**
+
 ```bash
 # Clear Next.js cache
 rm -rf .next
@@ -471,17 +475,20 @@ Now that you have the basic setup working:
 ## Quick Reference
 
 ### Important URLs
+
 - **Application**: `http://localhost:4002`
 - **Database GUI**: `http://localhost:5555`
 - **API Base**: `http://localhost:4002/api`
 
 ### Key Files
+
 - **Environment**: `.env`
 - **Database Schema**: `prisma/schema.prisma`
 - **API Routes**: `pages/api/`
 - **Components**: `components/`
 
 ### Essential Commands
+
 ```bash
 npm run dev                    # Start development
 npx prisma studio             # Database GUI

@@ -6,15 +6,17 @@ Execute quick implementation tasks for simple changes:
 4. **Scope check** - escalate to other agents if complexity grows
 
 Use when:
+
 - Adding buttons, fixing bugs, updating styles
 - Small component changes
 - Configuration updates
 - Simple feature additions
 
 Process:
+
 1. Understand the request
 2. Find relevant files (use search tools)
-3. Read current implementation  
+3. Read current implementation
 4. Make minimal changes
 5. Test if applicable
 6. Show results and ask for feedback

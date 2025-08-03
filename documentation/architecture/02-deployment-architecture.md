@@ -15,30 +15,32 @@ graph TD
         B[PostgreSQL Docker<br/>Port 5432]
         C[Local SMTP<br/>Port 1025]
     end
-    
+
     subgraph "External Services"
         D[GitHub OAuth<br/>Test App]
         E[Stripe Test Mode]
         F[Sentry Development]
     end
-    
+
     A --> B
     A --> D
     A --> E
     A --> F
-    
+
     style A fill:#e3f2fd
     style B fill:#e8f5e8
     style C fill:#fff3e0
 ```
 
 **Development Setup**:
+
 - **Application**: Local Next.js development server with hot reloading
 - **Database**: Docker Compose PostgreSQL container with persistent volumes
 - **Email**: Local SMTP server (Mailhog) or email service test mode
 - **External services**: Test/sandbox mode for all third-party integrations
 
 **Commands**:
+
 ```bash
 # Start development environment
 docker-compose up -d          # PostgreSQL database
@@ -56,20 +58,20 @@ graph TD
         C[PostgreSQL<br/>Port 5432]
         D[Redis Cache<br/>Port 6379]
     end
-    
+
     subgraph "External Services"
         E[Stripe Production]
         F[Email Provider]
         G[Monitoring Services]
     end
-    
+
     A --> B
     B --> C
     B --> D
     B --> E
     B --> F
     B --> G
-    
+
     style A fill:#ffebee
     style B fill:#e3f2fd
     style C fill:#e8f5e8
@@ -77,6 +79,7 @@ graph TD
 ```
 
 **Characteristics**:
+
 - **Suitable for**: Small to medium applications (< 10,000 users)
 - **Infrastructure**: Single VPS or dedicated server
 - **High availability**: Limited - single point of failure
@@ -84,6 +87,7 @@ graph TD
 - **Cost**: Low operational costs
 
 **Deployment Configuration**:
+
 ```dockerfile
 # Production Dockerfile
 FROM node:18-alpine AS deps
@@ -116,25 +120,25 @@ graph TD
             A[NGINX Ingress Controller]
             B[TLS Termination]
         end
-        
+
         subgraph "Application Tier"
             C[Next.js Pods x3]
             D[HPA Controller]
         end
-        
+
         subgraph "Data Tier"
             E[PostgreSQL StatefulSet]
             F[Redis Deployment]
             G[Persistent Volumes]
         end
-        
+
         subgraph "Monitoring"
             H[Prometheus]
             I[Grafana]
             J[Jaeger Tracing]
         end
     end
-    
+
     A --> C
     D --> C
     C --> E
@@ -142,7 +146,7 @@ graph TD
     E --> G
     F --> G
     C --> H
-    
+
     style A fill:#ffebee
     style C fill:#e3f2fd
     style E fill:#e8f5e8
@@ -150,6 +154,7 @@ graph TD
 ```
 
 **Characteristics**:
+
 - **Suitable for**: Large applications with high availability requirements
 - **Infrastructure**: Multi-node Kubernetes cluster
 - **High availability**: Multi-zone deployment with automatic failover
@@ -157,6 +162,7 @@ graph TD
 - **Cost**: Higher operational complexity and costs
 
 **Kubernetes Manifests**:
+
 ```yaml
 # app-deployment.yaml
 apiVersion: apps/v1
@@ -174,23 +180,23 @@ spec:
         app: saas-starter-kit
     spec:
       containers:
-      - name: app
-        image: saas-starter-kit:latest
-        ports:
-        - containerPort: 4002
-        env:
-        - name: DATABASE_URL
-          valueFrom:
-            secretKeyRef:
-              name: db-secret
-              key: url
-        resources:
-          requests:
-            memory: "512Mi"
-            cpu: "250m"
-          limits:
-            memory: "1Gi"
-            cpu: "500m"
+        - name: app
+          image: saas-starter-kit:latest
+          ports:
+            - containerPort: 4002
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: db-secret
+                  key: url
+          resources:
+            requests:
+              memory: '512Mi'
+              cpu: '250m'
+            limits:
+              memory: '1Gi'
+              cpu: '500m'
 
 ---
 apiVersion: v1
@@ -201,8 +207,8 @@ spec:
   selector:
     app: saas-starter-kit
   ports:
-  - port: 80
-    targetPort: 4002
+    - port: 80
+      targetPort: 4002
   type: ClusterIP
 
 ---
@@ -218,12 +224,12 @@ spec:
   minReplicas: 3
   maxReplicas: 10
   metrics:
-  - type: Resource
-    resource:
-      name: cpu
-      target:
-        type: Utilization
-        averageUtilization: 70
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
 ```
 
 ### Pattern 4: Cloud-Native Architecture
@@ -235,24 +241,24 @@ graph TD
             A[Application Load Balancer]
             B[Auto Scaling Group]
         end
-        
+
         subgraph "Compute"
             C[ECS/Cloud Run<br/>Container Instances]
             D[Auto Scaling Policies]
         end
-        
+
         subgraph "Data Services"
             E[RDS PostgreSQL<br/>Multi-AZ]
             F[ElastiCache Redis]
             G[S3/Cloud Storage]
         end
-        
+
         subgraph "Monitoring & Logging"
             H[CloudWatch/Stackdriver]
             I[Application Insights]
         end
     end
-    
+
     A --> C
     B --> C
     D --> C
@@ -260,7 +266,7 @@ graph TD
     C --> F
     C --> G
     C --> H
-    
+
     style A fill:#ffebee
     style C fill:#e3f2fd
     style E fill:#e8f5e8
@@ -268,6 +274,7 @@ graph TD
 ```
 
 **Characteristics**:
+
 - **Suitable for**: Enterprise applications with strict SLA requirements
 - **Infrastructure**: Managed cloud services with high availability
 - **High availability**: Multi-region deployment capabilities
@@ -279,6 +286,7 @@ graph TD
 ### Load Balancing and Traffic Management
 
 #### Application Load Balancer Configuration
+
 ```nginx
 # nginx.conf for reverse proxy
 upstream nextjs_backend {
@@ -328,6 +336,7 @@ server {
 ### Database Deployment Strategies
 
 #### Single Database Instance
+
 ```yaml
 # docker-compose.yml for development
 version: '3.8'
@@ -339,7 +348,7 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
     ports:
-      - "5432:5432"
+      - '5432:5432'
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
@@ -349,6 +358,7 @@ volumes:
 ```
 
 #### High Availability Database (RDS/Cloud SQL)
+
 ```terraform
 # terraform/database.tf
 resource "aws_db_instance" "postgres" {
@@ -356,27 +366,27 @@ resource "aws_db_instance" "postgres" {
   engine         = "postgres"
   engine_version = "14.9"
   instance_class = "db.r6g.large"
-  
+
   allocated_storage     = 100
   max_allocated_storage = 1000
   storage_type         = "gp3"
   storage_encrypted    = true
-  
+
   db_name  = "saas_starter_kit"
   username = "postgres"
   password = var.db_password
-  
+
   multi_az               = true
   backup_retention_period = 7
   backup_window          = "03:00-04:00"
   maintenance_window     = "Sun:04:00-Sun:05:00"
-  
+
   vpc_security_group_ids = [aws_security_group.database.id]
   db_subnet_group_name   = aws_db_subnet_group.default.name
-  
+
   skip_final_snapshot = false
   final_snapshot_identifier = "saas-starter-kit-final-snapshot"
-  
+
   tags = {
     Name = "SaaS Starter Kit Database"
     Environment = var.environment
@@ -396,6 +406,7 @@ resource "aws_db_subnet_group" "default" {
 ### Caching Infrastructure
 
 #### Redis Deployment
+
 ```yaml
 # redis-deployment.yaml
 apiVersion: apps/v1
@@ -413,34 +424,35 @@ spec:
         app: redis
     spec:
       containers:
-      - name: redis
-        image: redis:7-alpine
-        ports:
-        - containerPort: 6379
-        command:
-        - redis-server
-        - --appendonly yes
-        - --maxmemory 256mb
-        - --maxmemory-policy allkeys-lru
-        volumeMounts:
-        - name: redis-data
-          mountPath: /data
-        resources:
-          requests:
-            memory: "128Mi"
-            cpu: "100m"
-          limits:
-            memory: "256Mi"
-            cpu: "200m"
+        - name: redis
+          image: redis:7-alpine
+          ports:
+            - containerPort: 6379
+          command:
+            - redis-server
+            - --appendonly yes
+            - --maxmemory 256mb
+            - --maxmemory-policy allkeys-lru
+          volumeMounts:
+            - name: redis-data
+              mountPath: /data
+          resources:
+            requests:
+              memory: '128Mi'
+              cpu: '100m'
+            limits:
+              memory: '256Mi'
+              cpu: '200m'
       volumes:
-      - name: redis-data
-        persistentVolumeClaim:
-          claimName: redis-pvc
+        - name: redis-data
+          persistentVolumeClaim:
+            claimName: redis-pvc
 ```
 
 ## Environment Configuration
 
 ### Development Environment Variables
+
 ```bash
 # .env.local
 NODE_ENV=development
@@ -471,6 +483,7 @@ MIXPANEL_TOKEN=your_mixpanel_token
 ```
 
 ### Production Environment Variables
+
 ```bash
 # .env.production
 NODE_ENV=production
@@ -510,6 +523,7 @@ RECAPTCHA_SECRET_KEY=your_recaptcha_secret_key
 ## Monitoring and Observability
 
 ### Health Checks
+
 ```typescript
 // pages/api/health.ts
 import { NextApiRequest, NextApiResponse } from 'next';
@@ -522,28 +536,29 @@ export default async function handler(
   try {
     // Database health check
     await prisma.$queryRaw`SELECT 1`;
-    
+
     // External service health checks
     const checks = {
       database: 'healthy',
       timestamp: new Date().toISOString(),
       uptime: process.uptime(),
       memory: process.memoryUsage(),
-      version: process.env.npm_package_version
+      version: process.env.npm_package_version,
     };
-    
+
     res.status(200).json(checks);
   } catch (error) {
     res.status(503).json({
       database: 'unhealthy',
       error: error.message,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
   }
 }
 ```
 
 ### Logging Configuration
+
 ```typescript
 // lib/logger.ts
 import winston from 'winston';
@@ -563,15 +578,18 @@ const logger = winston.createLogger({
 });
 
 if (process.env.NODE_ENV !== 'production') {
-  logger.add(new winston.transports.Console({
-    format: winston.format.simple()
-  }));
+  logger.add(
+    new winston.transports.Console({
+      format: winston.format.simple(),
+    })
+  );
 }
 
 export { logger };
 ```
 
 ### Metrics Collection
+
 ```typescript
 // lib/metrics.ts
 import { metrics } from '@opentelemetry/api-metrics';
@@ -579,33 +597,39 @@ import { metrics } from '@opentelemetry/api-metrics';
 const meter = metrics.getMeter('saas-starter-kit');
 
 export const requestCounter = meter.createCounter('http_requests_total', {
-  description: 'Total number of HTTP requests'
+  description: 'Total number of HTTP requests',
 });
 
-export const requestDuration = meter.createHistogram('http_request_duration_ms', {
-  description: 'Duration of HTTP requests in milliseconds'
-});
+export const requestDuration = meter.createHistogram(
+  'http_request_duration_ms',
+  {
+    description: 'Duration of HTTP requests in milliseconds',
+  }
+);
 
 export const activeUsers = meter.createUpDownCounter('active_users', {
-  description: 'Number of active users'
+  description: 'Number of active users',
 });
 ```
 
 ## Security Considerations
 
 ### Network Security
+
 - **TLS termination**: SSL/TLS certificates with automatic renewal
 - **Security headers**: CSP, HSTS, X-Frame-Options via middleware
 - **Rate limiting**: Application-level and infrastructure-level protection
 - **DDoS protection**: Cloud provider DDoS protection services
 
 ### Application Security
+
 - **Secrets management**: Environment variables with secure storage
 - **Database security**: Connection encryption, credential rotation
 - **API security**: Authentication, authorization, input validation
 - **Dependency scanning**: Regular security audits of npm packages
 
 ### Infrastructure Security
+
 - **Network isolation**: VPC/private networks for database access
 - **Access control**: IAM roles and policies for cloud resources
 - **Audit logging**: Infrastructure and application audit trails
@@ -614,6 +638,7 @@ export const activeUsers = meter.createUpDownCounter('active_users', {
 ## Disaster Recovery
 
 ### Backup Strategy
+
 ```bash
 #!/bin/bash
 # backup.sh - Database backup script
@@ -636,6 +661,7 @@ find $BACKUP_DIR -name "db_backup_*.sql.gz" -mtime +30 -delete
 ```
 
 ### Recovery Procedures
+
 1. **Database recovery**: Restore from latest backup with point-in-time recovery
 2. **Application recovery**: Redeploy from source control with configuration
 3. **Data verification**: Validate data integrity after recovery
@@ -644,18 +670,21 @@ find $BACKUP_DIR -name "db_backup_*.sql.gz" -mtime +30 -delete
 ## Performance Optimization
 
 ### Application Performance
+
 - **Code splitting**: Automatic code splitting with Next.js
 - **Image optimization**: Next.js Image component with WebP
 - **Caching strategy**: SWR for client-side caching, Redis for server-side
 - **Bundle analysis**: Regular bundle size monitoring and optimization
 
 ### Database Performance
+
 - **Query optimization**: Index optimization and query analysis
 - **Connection pooling**: Prisma connection pooling configuration
 - **Read replicas**: Separate read operations to reduce load
 - **Query monitoring**: Slow query detection and optimization
 
 ### Infrastructure Performance
+
 - **CDN integration**: CloudFront/CloudFlare for static asset delivery
 - **Geographic distribution**: Multi-region deployment for global users
 - **Auto-scaling**: CPU and memory-based scaling policies

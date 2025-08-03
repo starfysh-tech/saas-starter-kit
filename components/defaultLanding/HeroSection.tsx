@@ -18,10 +18,7 @@ const HeroSection = () => {
             >
               {t('get-started')}
             </Link>
-            <Link
-              href="/auth/join"
-              className="btn btn-outline px-8"
-            >
+            <Link href="/auth/join" className="btn btn-outline px-8">
               Learn More
             </Link>
           </div>

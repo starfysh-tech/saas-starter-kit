@@ -196,7 +196,10 @@ const handlePOST = async (req: NextApiRequest, res: NextApiResponse) => {
   const { action, memberId } = req.body;
 
   if (action !== 'reset-password') {
-    throw new ApiError(400, 'Invalid action. Only reset-password is supported.');
+    throw new ApiError(
+      400,
+      'Invalid action. Only reset-password is supported.'
+    );
   }
 
   if (!memberId) {
@@ -205,8 +208,8 @@ const handlePOST = async (req: NextApiRequest, res: NextApiResponse) => {
 
   // Verify the member exists and is part of this team
   const members = await getTeamMembers(teamMember.team.slug);
-  const targetMember = members.find(m => m.userId === memberId);
-  
+  const targetMember = members.find((m) => m.userId === memberId);
+
   if (!targetMember) {
     throw new ApiError(404, 'Member not found in this team.');
   }
@@ -235,10 +238,10 @@ const handlePOST = async (req: NextApiRequest, res: NextApiResponse) => {
 
   recordMetric('user.password.reset');
 
-  res.status(200).json({ 
-    data: { 
+  res.status(200).json({
+    data: {
       message: 'Password reset successfully.',
-      temporaryPassword: tempPassword
-    }
+      temporaryPassword: tempPassword,
+    },
   });
 };

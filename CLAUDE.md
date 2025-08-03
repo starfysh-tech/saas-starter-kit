@@ -157,6 +157,7 @@ Key entities in Prisma schema:
 When integrating new services or updating existing ones:
 
 1. **Use Context7 MCP** only when:
+
    - Documentation file doesn't exist for a service being integrated
    - Code examples fail due to API changes (deprecated methods, changed parameters)
    - Environment setup instructions don't work with current service versions

@@ -5,6 +5,7 @@ Prisma ORM is the database toolkit used in this SaaS starter kit, providing type
 ## Overview
 
 Prisma provides:
+
 - Type-safe database client with auto-completion
 - Database schema modeling and migrations
 - Query optimization and connection pooling
@@ -94,7 +95,7 @@ model TeamMember {
 
 enum Role {
   OWNER
-  ADMIN  
+  ADMIN
   MEMBER
 }
 ```
@@ -138,15 +139,15 @@ npx prisma migrate status
 Create `prisma/seed.ts`:
 
 ```typescript
-import { PrismaClient } from '@prisma/client'
-import bcrypt from 'bcryptjs'
+import { PrismaClient } from '@prisma/client';
+import bcrypt from 'bcryptjs';
 
-const prisma = new PrismaClient()
+const prisma = new PrismaClient();
 
 async function main() {
   // Create sample users
-  const hashedPassword = await bcrypt.hash('password123', 10)
-  
+  const hashedPassword = await bcrypt.hash('password123', 10);
+
   const user1 = await prisma.user.upsert({
     where: { email: 'john@example.com' },
     update: {},
@@ -154,7 +155,7 @@ async function main() {
       email: 'john@example.com',
       name: 'John Doe',
     },
-  })
+  });
 
   const user2 = await prisma.user.upsert({
     where: { email: 'jane@example.com' },
@@ -163,7 +164,7 @@ async function main() {
       email: 'jane@example.com',
       name: 'Jane Smith',
     },
-  })
+  });
 
   // Create sample team
   const team = await prisma.team.upsert({
@@ -181,25 +182,25 @@ async function main() {
           },
           {
             userId: user2.id,
-            role: 'MEMBER', 
+            role: 'MEMBER',
             accepted: true,
           },
         ],
       },
     },
-  })
+  });
 
-  console.log('Database seeded successfully')
+  console.log('Database seeded successfully');
 }
 
 main()
   .catch((e) => {
-    console.error(e)
-    process.exit(1)
+    console.error(e);
+    process.exit(1);
   })
   .finally(async () => {
-    await prisma.$disconnect()
-  })
+    await prisma.$disconnect();
+  });
 ```
 
 Add to `package.json`:
@@ -225,27 +226,27 @@ npx prisma db seed
 Create `lib/prisma.ts`:
 
 ```typescript
-import { PrismaClient } from '@prisma/client'
+import { PrismaClient } from '@prisma/client';
 
 const globalForPrisma = globalThis as unknown as {
-  prisma: PrismaClient | undefined
-}
+  prisma: PrismaClient | undefined;
+};
 
-export const prisma = globalForPrisma.prisma ?? new PrismaClient()
+export const prisma = globalForPrisma.prisma ?? new PrismaClient();
 
-if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma
+if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma;
 ```
 
 ### Basic CRUD Operations
 
 ```typescript
-import { prisma } from '@/lib/prisma'
+import { prisma } from '@/lib/prisma';
 
 // Create user
 async function createUser(data: { email: string; name?: string }) {
   return await prisma.user.create({
     data,
-  })
+  });
 }
 
 // Find user by email
@@ -259,7 +260,7 @@ async function getUserByEmail(email: string) {
         },
       },
     },
-  })
+  });
 }
 
 // Update user
@@ -267,19 +268,19 @@ async function updateUser(id: string, data: { name?: string; image?: string }) {
   return await prisma.user.update({
     where: { id },
     data,
-  })
+  });
 }
 
 // Delete user
 async function deleteUser(id: string) {
   return await prisma.user.delete({
     where: { id },
-  })
+  });
 }
 
 // Get users with pagination
 async function getUsers(page: number = 1, limit: number = 10) {
-  const skip = (page - 1) * limit
+  const skip = (page - 1) * limit;
 
   const [users, total] = await Promise.all([
     prisma.user.findMany({
@@ -288,14 +289,14 @@ async function getUsers(page: number = 1, limit: number = 10) {
       orderBy: { createdAt: 'desc' },
     }),
     prisma.user.count(),
-  ])
+  ]);
 
   return {
     users,
     total,
     pages: Math.ceil(total / limit),
     currentPage: page,
-  }
+  };
 }
 ```
 
@@ -327,7 +328,7 @@ async function getTeamWithMembers(slug: string) {
         },
       },
     },
-  })
+  });
 }
 
 // Search users across teams
@@ -366,7 +367,7 @@ async function searchUsers(query: string, teamId?: string) {
       },
     },
     orderBy: { name: 'asc' },
-  })
+  });
 }
 
 // Aggregate queries
@@ -394,13 +395,13 @@ async function getTeamStats(teamId: string) {
         },
       },
     }),
-  ])
+  ]);
 
   return {
     totalMembers: memberCount,
     activeMembers,
     recentActivity,
-  }
+  };
 }
 ```
 
@@ -408,7 +409,11 @@ async function getTeamStats(teamId: string) {
 
 ```typescript
 // Transfer team ownership
-async function transferTeamOwnership(teamId: string, currentOwnerId: string, newOwnerId: string) {
+async function transferTeamOwnership(
+  teamId: string,
+  currentOwnerId: string,
+  newOwnerId: string
+) {
   return await prisma.$transaction(async (prisma) => {
     // Downgrade current owner to admin
     await prisma.teamMember.update({
@@ -419,7 +424,7 @@ async function transferTeamOwnership(teamId: string, currentOwnerId: string, new
         },
       },
       data: { role: 'ADMIN' },
-    })
+    });
 
     // Upgrade new member to owner
     await prisma.teamMember.update({
@@ -430,7 +435,7 @@ async function transferTeamOwnership(teamId: string, currentOwnerId: string, new
         },
       },
       data: { role: 'OWNER' },
-    })
+    });
 
     // Log the ownership transfer
     return await prisma.auditLog.create({
@@ -443,23 +448,25 @@ async function transferTeamOwnership(teamId: string, currentOwnerId: string, new
           newOwner: newOwnerId,
         },
       },
-    })
-  })
+    });
+  });
 }
 
 // Bulk operations
-async function createMultipleInvitations(invitations: Array<{
-  email: string;
-  teamId: string;
-  role: Role;
-}>) {
+async function createMultipleInvitations(
+  invitations: Array<{
+    email: string;
+    teamId: string;
+    role: Role;
+  }>
+) {
   return await prisma.$transaction(
     invitations.map((invitation) =>
       prisma.invitation.create({
         data: invitation,
       })
     )
-  )
+  );
 }
 ```
 
@@ -485,7 +492,7 @@ generator client {
 
 ```typescript
 // Connection pool configuration
-import { PrismaClient } from '@prisma/client'
+import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient({
   datasources: {
@@ -493,7 +500,7 @@ const prisma = new PrismaClient({
       url: process.env.DATABASE_URL,
     },
   },
-})
+});
 ```
 
 ### Database Middleware
@@ -501,35 +508,37 @@ const prisma = new PrismaClient({
 ```typescript
 // Add logging middleware
 prisma.$use(async (params, next) => {
-  const before = Date.now()
-  
-  const result = await next(params)
-  
-  const after = Date.now()
-  
-  console.log(`Query ${params.model}.${params.action} took ${after - before}ms`)
-  
-  return result
-})
+  const before = Date.now();
+
+  const result = await next(params);
+
+  const after = Date.now();
+
+  console.log(
+    `Query ${params.model}.${params.action} took ${after - before}ms`
+  );
+
+  return result;
+});
 
 // Add soft delete middleware
 prisma.$use(async (params, next) => {
   if (params.model === 'User') {
     if (params.action === 'delete') {
       // Change delete to update
-      params.action = 'update'
-      params.args['data'] = { deletedAt: new Date() }
+      params.action = 'update';
+      params.args['data'] = { deletedAt: new Date() };
     }
-    
+
     if (params.action === 'findMany' || params.action === 'findFirst') {
       // Add filter for non-deleted records
-      if (!params.args.where) params.args.where = {}
-      params.args.where.deletedAt = null
+      if (!params.args.where) params.args.where = {};
+      params.args.where.deletedAt = null;
     }
   }
-  
-  return next(params)
-})
+
+  return next(params);
+});
 ```
 
 ### Raw Queries
@@ -545,7 +554,7 @@ async function getUsersWithCustomQuery() {
     GROUP BY u.id
     ORDER BY team_count DESC
     LIMIT 10
-  `
+  `;
 }
 
 // Prepared statements
@@ -555,7 +564,7 @@ async function getUsersByRole(role: string) {
     FROM users u
     JOIN team_members tm ON u.id = tm.user_id
     WHERE tm.role = ${role}
-  `
+  `;
 }
 ```
 
@@ -565,7 +574,7 @@ async function getUsersByRole(role: string) {
 
 ```prisma
 model User {
-  id    String @id @default(cuid())  
+  id    String @id @default(cuid())
   posts Post[]
 }
 
@@ -594,7 +603,7 @@ model UserRole {
   roleId String
   user   User   @relation(fields: [userId], references: [id])
   role   Role   @relation(fields: [roleId], references: [id])
-  
+
   @@id([userId, roleId])
 }
 ```
@@ -623,7 +632,7 @@ const users = await prisma.user.findMany({
     name: true,
     email: true,
   },
-})
+});
 
 // Use include for relations
 const usersWithTeams = await prisma.user.findMany({
@@ -639,14 +648,14 @@ const usersWithTeams = await prisma.user.findMany({
       },
     },
   },
-})
+});
 
 // Batch queries
 const [users, teams, invitations] = await Promise.all([
   prisma.user.findMany(),
   prisma.team.findMany(),
   prisma.invitation.findMany(),
-])
+]);
 ```
 
 ### Indexing
@@ -656,7 +665,7 @@ model User {
   id    String @id @default(cuid())
   email String @unique
   name  String?
-  
+
   @@index([name]) // Single field index
   @@index([email, name]) // Compound index
 }
@@ -665,7 +674,7 @@ model TeamMember {
   userId String
   teamId String
   role   Role
-  
+
   @@unique([userId, teamId])
   @@index([teamId, role]) // For filtering by team and role
 }
@@ -677,7 +686,7 @@ model TeamMember {
 
 ```typescript
 // tests/setup.ts
-import { PrismaClient } from '@prisma/client'
+import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient({
   datasources: {
@@ -685,23 +694,23 @@ const prisma = new PrismaClient({
       url: process.env.TEST_DATABASE_URL,
     },
   },
-})
+});
 
 export async function resetDatabase() {
   // Clean up test data
-  await prisma.teamMember.deleteMany()
-  await prisma.team.deleteMany()
-  await prisma.user.deleteMany()
+  await prisma.teamMember.deleteMany();
+  await prisma.team.deleteMany();
+  await prisma.user.deleteMany();
 }
 
-export { prisma }
+export { prisma };
 ```
 
 ### Test Utilities
 
 ```typescript
 // tests/helpers/database.ts
-import { prisma } from './setup'
+import { prisma } from './setup';
 
 export async function createTestUser(overrides = {}) {
   return await prisma.user.create({
@@ -710,7 +719,7 @@ export async function createTestUser(overrides = {}) {
       name: 'Test User',
       ...overrides,
     },
-  })
+  });
 }
 
 export async function createTestTeam(userId: string, overrides = {}) {
@@ -727,7 +736,7 @@ export async function createTestTeam(userId: string, overrides = {}) {
       },
       ...overrides,
     },
-  })
+  });
 }
 ```
 
@@ -736,36 +745,36 @@ export async function createTestTeam(userId: string, overrides = {}) {
 ### Common Prisma Errors
 
 ```typescript
-import { Prisma } from '@prisma/client'
+import { Prisma } from '@prisma/client';
 
 export function handlePrismaError(error: unknown) {
   if (error instanceof Prisma.PrismaClientKnownRequestError) {
     switch (error.code) {
       case 'P2002':
-        return { error: 'A record with this value already exists' }
+        return { error: 'A record with this value already exists' };
       case 'P2025':
-        return { error: 'Record not found' }
+        return { error: 'Record not found' };
       case 'P2003':
-        return { error: 'Foreign key constraint failed' }
+        return { error: 'Foreign key constraint failed' };
       default:
-        return { error: 'Database error occurred' }
+        return { error: 'Database error occurred' };
     }
   }
 
   if (error instanceof Prisma.PrismaClientValidationError) {
-    return { error: 'Invalid data provided' }
+    return { error: 'Invalid data provided' };
   }
 
-  return { error: 'An unexpected error occurred' }
+  return { error: 'An unexpected error occurred' };
 }
 
 // Usage in API routes
 try {
-  const user = await prisma.user.create({ data: userData })
-  return user
+  const user = await prisma.user.create({ data: userData });
+  return user;
 } catch (error) {
-  const { error: errorMessage } = handlePrismaError(error)
-  throw new Error(errorMessage)
+  const { error: errorMessage } = handlePrismaError(error);
+  throw new Error(errorMessage);
 }
 ```
 

@@ -17,7 +17,7 @@ The Nest is MQOL's internal portal platform providing nursing teams with secure,
 Complete documentation for all third-party service integrations is available in the `/documentation/` folder:
 
 - **[NextAuth.js](./documentation/NEXTAUTH.md)** - Authentication with multiple providers
-- **[Prisma ORM](./documentation/PRISMA.md)** - Database operations and schema management  
+- **[Prisma ORM](./documentation/PRISMA.md)** - Database operations and schema management
 - **[Stripe](./documentation/STRIPE.md)** - Payment processing and subscriptions
 - **[SAML Jackson](./documentation/JACKSON.md)** - Enterprise SSO and directory sync
 - **[Svix](./documentation/SVIX.md)** - Webhook orchestration and events
@@ -251,7 +251,7 @@ The platform uses an intelligent agent-based system for adding new features:
 # Medium complexity
 @structured-work Add user notification preferences system
 
-# Complex features  
+# Complex features
 @add-feature Add comprehensive audit logging with export capabilities
 ```
 

@@ -11,7 +11,8 @@ const FeatureSection = () => {
           {t('features')}
         </h2>
         <p className="text-center text-xl">
-          Powerful tools designed to streamline your business operations and team collaboration.
+          Powerful tools designed to streamline your business operations and
+          team collaboration.
         </p>
         <div className="flex items-center justify-center">
           <div className="grid grid-cols-1 xl:grid-cols-3 md:grid-cols-2 gap-2">

@@ -77,6 +77,7 @@ const opts: JacksonOption = {
 ### NextAuth.js Integration
 
 #### SAML SSO Provider
+
 ```typescript
 // lib/nextAuth.ts
 providers.push(
@@ -94,6 +95,7 @@ providers.push(
 ```
 
 #### IdP-Initiated Login Provider
+
 ```typescript
 CredentialsProvider({
   id: 'boxyhq-idp',
@@ -103,14 +105,14 @@ CredentialsProvider({
   },
   async authorize(credentials) {
     const { code } = credentials || {};
-    
+
     // Exchange code for access token and get user info
     const accessToken = await exchangeCodeForToken(code);
     const userInfo = await getUserInfo(accessToken);
-    
+
     return userInfo;
   },
-})
+});
 ```
 
 ## SAML SSO Setup
@@ -118,6 +120,7 @@ CredentialsProvider({
 ### 1. Identity Provider Configuration
 
 #### Supported IdPs
+
 - Active Directory Federation Services (ADFS)
 - Azure Active Directory
 - Okta
@@ -126,12 +129,13 @@ CredentialsProvider({
 - Any SAML 2.0 compliant IdP
 
 #### Required IdP Settings
+
 ```xml
 <!-- Service Provider Entity ID -->
 <EntityDescriptor entityID="https://saml.boxyhq.com">
 
 <!-- Assertion Consumer Service -->
-<AssertionConsumerService 
+<AssertionConsumerService
   Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST"
   Location="https://yourapp.com/api/oauth/saml"
   index="0" />
@@ -145,6 +149,7 @@ CredentialsProvider({
 ### 2. SAML Connection Creation
 
 #### Via API
+
 ```bash
 curl -X POST 'http://localhost:4002/api/oauth/saml' \
   -H 'Content-Type: application/x-www-form-urlencoded' \
@@ -156,7 +161,9 @@ curl -X POST 'http://localhost:4002/api/oauth/saml' \
 ```
 
 #### Via UI Components
+
 The starter kit includes UI components for SAML configuration:
+
 - Team SSO settings page (`pages/teams/[slug]/sso.tsx`)
 - SAML connection form (`components/sso/`)
 - IdP selection page (`pages/auth/sso/idp-select.tsx`)
@@ -164,6 +171,7 @@ The starter kit includes UI components for SAML configuration:
 ### 3. Multi-Tenant Configuration
 
 #### Tenant Identification
+
 ```typescript
 // Extract tenant from user email domain
 const getTenantFromEmail = (email: string) => {
@@ -176,17 +184,19 @@ const product = 'saas-starter-kit';
 ```
 
 #### Team-Scoped SSO
+
 Each team gets its own SSO configuration:
+
 ```typescript
 // lib/jackson/sso/utils.ts
 export const getConnection = async (tenant: string, product: string) => {
   const { connectionAPIController } = await jackson();
-  
+
   const connections = await connectionAPIController.getConnections({
     tenant,
     product,
   });
-  
+
   return connections[0];
 };
 ```
@@ -196,10 +206,12 @@ export const getConnection = async (tenant: string, product: string) => {
 ### 1. SCIM Endpoint Configuration
 
 #### API Routes
+
 - `pages/api/scim/v2.0/[...directory].ts` - Main SCIM endpoint
 - `pages/api/webhooks/dsync.ts` - Directory sync webhook handler
 
 #### SCIM Operations
+
 ```typescript
 // Handle SCIM requests
 export default async function handler(
@@ -207,11 +219,11 @@ export default async function handler(
   res: NextApiResponse
 ) {
   const { directorySync } = await jackson();
-  
+
   const { data, status } = await directorySync.requests.handle(req, res, {
     directoryId: req.query.directoryId as string,
   });
-  
+
   res.status(status).json(data);
 }
 ```
@@ -219,6 +231,7 @@ export default async function handler(
 ### 2. Directory Sync Events
 
 #### Event Handling
+
 ```typescript
 // pages/api/webhooks/dsync.ts
 export default async function handler(
@@ -226,9 +239,9 @@ export default async function handler(
   res: NextApiResponse
 ) {
   const { directorySync } = await jackson();
-  
+
   const { data } = await directorySync.requests.handle(req, res);
-  
+
   // Process directory sync events
   switch (data.event) {
     case 'user.created':
@@ -244,7 +257,7 @@ export default async function handler(
       await handleGroupCreated(data.data);
       break;
   }
-  
+
   res.status(200).json({ success: true });
 }
 ```
@@ -252,6 +265,7 @@ export default async function handler(
 ### 3. Google Workspace Integration
 
 #### Configuration
+
 ```env
 DSYNC_GOOGLE_CLIENT_ID=your-google-client-id
 DSYNC_GOOGLE_CLIENT_SECRET=your-google-client-secret
@@ -259,6 +273,7 @@ DSYNC_GOOGLE_REDIRECT_URI=https://yourapp.com/api/oauth/callback
 ```
 
 #### User Provisioning
+
 ```typescript
 const handleUserCreated = async (userData: SCIMUser) => {
   const user = await createUser({
@@ -266,7 +281,7 @@ const handleUserCreated = async (userData: SCIMUser) => {
     name: userData.displayName,
     externalId: userData.id,
   });
-  
+
   // Add user to appropriate team based on groups
   for (const group of userData.groups) {
     await addUserToTeam(user.id, group.value);
@@ -277,12 +292,14 @@ const handleUserCreated = async (userData: SCIMUser) => {
 ## Security Best Practices
 
 ### SAML Security
+
 - **SP-initiated flows preferred** over IdP-initiated for better security
 - **Validate redirect URLs** to prevent malicious redirects
 - **SAML audience validation** ensures intended recipient
 - **Signature verification** for SAML assertions
 
 ### API Security
+
 ```typescript
 // Secure API endpoints with proper authentication
 export default async function handler(
@@ -291,17 +308,18 @@ export default async function handler(
 ) {
   // Verify team access
   const teamMember = await throwIfNoTeamAccess(req, res);
-  
+
   // Check SSO feature is enabled
   if (!env.teamFeatures.sso) {
     return res.status(404).json({ error: 'SSO not available' });
   }
-  
+
   // Process request...
 }
 ```
 
 ### Environment Security
+
 - Store sensitive configuration in environment variables
 - Use secure connection strings for databases
 - Implement webhook signature verification
@@ -310,6 +328,7 @@ export default async function handler(
 ## Authentication Flows
 
 ### SP-Initiated SSO Flow
+
 1. User clicks "Login with SSO" button
 2. Application redirects to `/auth/sso/idp-select`
 3. User enters email or selects organization
@@ -320,6 +339,7 @@ export default async function handler(
 8. User redirected to application dashboard
 
 ### IdP-Initiated SSO Flow
+
 1. User clicks application link in IdP portal
 2. IdP sends SAML assertion to `/api/oauth/saml`
 3. Jackson processes assertion and generates auth code
@@ -332,6 +352,7 @@ export default async function handler(
 ### Common Issues
 
 #### SAML Configuration Errors
+
 ```typescript
 // Check SAML connection status
 const connection = await getConnection(tenant, product);
@@ -346,6 +367,7 @@ if (!connection.idpMetadata) {
 ```
 
 #### Directory Sync Issues
+
 ```typescript
 // Check directory sync status
 const directory = await getDirectory(directoryId);
@@ -362,13 +384,16 @@ if (!directory.webhook?.endpoint) {
 ### Debug Tools
 
 #### SAML Tracer
+
 Access SAML traces through the admin interface:
+
 - View failed SAML requests/responses
 - Inspect assertion details
 - Check signature validation errors
 - Review redirect URL violations
 
 #### Health Check
+
 ```bash
 # Check Jackson health
 curl http://localhost:4002/api/health
@@ -377,6 +402,7 @@ curl http://localhost:4002/api/health
 ```
 
 ### Error Logging
+
 ```typescript
 // Enhanced error logging for SSO issues
 try {
@@ -396,6 +422,7 @@ try {
 ## Production Deployment
 
 ### Pre-Launch Checklist
+
 - [ ] Configure production database
 - [ ] Set up HTTPS endpoints
 - [ ] Update SAML audience configuration
@@ -405,12 +432,14 @@ try {
 - [ ] Verify security settings
 
 ### Monitoring
+
 - Track SSO login success/failure rates
 - Monitor directory sync event processing
 - Set up alerts for authentication errors
 - Review SAML tracer logs regularly
 
 ## Related Files
+
 - `lib/jackson.ts:1` - Core Jackson configuration
 - `lib/jackson/sso/index.ts:1` - SSO utility functions
 - `lib/jackson/dsync/index.ts:1` - Directory sync utilities

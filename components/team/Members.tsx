@@ -157,19 +157,27 @@ const Members = ({ team }: { team: Team }) => {
               },
               {
                 buttons: [
-                  ...(canUpdateRole(member) ? [{
-                    color: 'warning',
-                    text: 'Reset Password',
-                    onClick: () => resetMemberPassword(member),
-                  }] : []),
-                  ...(canRemoveMember(member) ? [{
-                    color: 'error',
-                    text: t('remove'),
-                    onClick: () => {
-                      setSelectedMember(member);
-                      setConfirmationDialogVisible(true);
-                    },
-                  }] : []),
+                  ...(canUpdateRole(member)
+                    ? [
+                        {
+                          color: 'warning',
+                          text: 'Reset Password',
+                          onClick: () => resetMemberPassword(member),
+                        },
+                      ]
+                    : []),
+                  ...(canRemoveMember(member)
+                    ? [
+                        {
+                          color: 'error',
+                          text: t('remove'),
+                          onClick: () => {
+                            setSelectedMember(member);
+                            setConfirmationDialogVisible(true);
+                          },
+                        },
+                      ]
+                    : []),
                 ],
               },
             ],

@@ -14,7 +14,7 @@ The sub-agent maintains this state structure throughout the conversation:
   "featureRequest": "original user request",
   "concept": {
     "problem": "what problem this solves",
-    "scope": "high-level scope boundaries", 
+    "scope": "high-level scope boundaries",
     "coreFunction": "primary functionality needed",
     "users": "who will use this feature"
   },
@@ -29,7 +29,7 @@ The sub-agent maintains this state structure throughout the conversation:
   "specifications": {
     "dataModel": "chosen data modeling approach",
     "permissions": "selected permission pattern",
-    "uiApproach": "selected UI pattern", 
+    "uiApproach": "selected UI pattern",
     "apiDesign": "selected API design pattern",
     "integrations": "external integration needs"
   },
@@ -72,6 +72,7 @@ The sub-agent maintains this state structure throughout the conversation:
 **Question Types**: Open-ended, exploratory
 
 #### Question Framework:
+
 ```
 1. Problem Understanding:
    - "What problem are you trying to solve with [feature]?"
@@ -95,6 +96,7 @@ The sub-agent maintains this state structure throughout the conversation:
 ```
 
 **Pass 1 Completion Criteria**:
+
 - [ ] Problem clearly understood
 - [ ] Scope boundaries defined
 - [ ] Core functionality identified
@@ -110,6 +112,7 @@ The sub-agent maintains this state structure throughout the conversation:
 **Process**: Read documentation and examine code patterns
 
 #### Analysis Framework:
+
 ```
 1. Read Required Documentation:
    - Architecture documentation (all files)
@@ -140,6 +143,7 @@ The sub-agent maintains this state structure throughout the conversation:
 ```
 
 **Pass 2 Output Format**:
+
 ```
 Based on my codebase analysis, here's what I found relevant to [feature]:
 
@@ -165,6 +169,7 @@ Does this align with your vision, or should we consider alternative approaches?
 ```
 
 **Pass 2 Completion Criteria**:
+
 - [ ] Similar patterns identified
 - [ ] Technical constraints understood
 - [ ] Recommended approach presented
@@ -180,6 +185,7 @@ Does this align with your vision, or should we consider alternative approaches?
 **Question Types**: Choice-based options referencing actual code patterns
 
 #### Specification Framework:
+
 ```
 1. Data Model Specification:
    Present options based on existing models:
@@ -196,7 +202,7 @@ Does this align with your vision, or should we consider alternative approaches?
 3. UI Pattern Specification:
    Present options based on existing components:
    - [ ] Table list + detail view (like Teams/Members)
-   - [ ] Card grid + modal forms (like API Keys) 
+   - [ ] Card grid + modal forms (like API Keys)
    - [ ] Custom layout: [describe needs]
 
 4. API Design Specification:
@@ -213,6 +219,7 @@ Does this align with your vision, or should we consider alternative approaches?
 ```
 
 **Pass 3 Output Format**:
+
 ```
 Based on your choice of [approach], let me refine the specification:
 
@@ -240,6 +247,7 @@ Based on your choice of [approach], let me refine the specification:
 ```
 
 **Pass 3 Completion Criteria**:
+
 - [ ] Data model approach confirmed
 - [ ] Permission model defined
 - [ ] UI pattern selected
@@ -256,6 +264,7 @@ Based on your choice of [approach], let me refine the specification:
 **Process**: Define MVP vs enhancements, sequence dependencies
 
 #### Planning Framework:
+
 ```
 1. MVP Definition:
    - What's the minimal viable version?
@@ -279,12 +288,13 @@ Based on your choice of [approach], let me refine the specification:
 ```
 
 **Pass 4 Output Format**:
+
 ```
 Here's my proposed incremental implementation:
 
 **Phase 1 - MVP ([scope description])**:
 • [Feature 1]: [specific implementation]
-• [Feature 2]: [specific implementation] 
+• [Feature 2]: [specific implementation]
 • [Feature 3]: [specific implementation]
 • Dependencies: [list prerequisites]
 • Estimated effort: [time estimate]
@@ -310,6 +320,7 @@ Questions:
 ```
 
 **Pass 4 Completion Criteria**:
+
 - [ ] MVP clearly defined and scoped
 - [ ] Enhancement phases planned
 - [ ] Dependencies identified
@@ -326,6 +337,7 @@ Questions:
 **Process**: Validate against existing code patterns
 
 #### Validation Framework:
+
 ```
 1. Data Model Validation:
    ✅ Follows existing schema patterns
@@ -364,6 +376,7 @@ Questions:
 ```
 
 **Pass 5 Output Format**:
+
 ```
 Final technical validation for [current phase]:
 
@@ -372,7 +385,7 @@ Final technical validation for [current phase]:
 • [Validation point 2]
 • [Validation point 3]
 
-**API Endpoints** ✅  
+**API Endpoints** ✅
 • [Validation point 1]
 • [Validation point 2]
 • [Validation point 3]
@@ -399,6 +412,7 @@ Ready to generate the complete implementation guide for [current phase]?
 ```
 
 **Pass 5 Completion Criteria**:
+
 - [ ] All technical aspects validated
 - [ ] No blocking issues identified
 - [ ] Considerations documented
@@ -410,9 +424,10 @@ Ready to generate the complete implementation guide for [current phase]?
 ## State Transition Rules
 
 ### Moving Between Passes
+
 ```
 Pass 1 → Pass 2: When concept is sufficiently understood
-Pass 2 → Pass 3: When codebase analysis is complete and approach is confirmed  
+Pass 2 → Pass 3: When codebase analysis is complete and approach is confirmed
 Pass 3 → Pass 4: When specifications are refined and confirmed
 Pass 4 → Pass 5: When implementation plan is accepted
 Pass 5 → Implementation: When all validation is complete
@@ -424,6 +439,7 @@ Backward transitions allowed at any point if:
 ```
 
 ### Handling Iteration Within Passes
+
 ```
 If during any pass:
 - User requests changes → Stay in current pass, refine understanding
@@ -435,6 +451,7 @@ If during any pass:
 ## Conversation Management
 
 ### Starting a New Feature
+
 ```
 Initial State:
 - currentPass: 1
@@ -445,6 +462,7 @@ Track: Original request, user responses, decisions made
 ```
 
 ### Continuing a Conversation
+
 ```
 Resume from current pass:
 - Review state to understand where we are
@@ -455,6 +473,7 @@ Track: New information, state updates, decision changes
 ```
 
 ### Handling Scope Changes
+
 ```
 If significant scope change:
 - Assess impact on current understanding

@@ -90,6 +90,7 @@ SMTP_FROM=noreply@yourdomain.com
 ```
 
 #### AWS SES Setup Steps
+
 1. Verify your domain in AWS SES console
 2. Create SMTP credentials
 3. Configure DNS records (SPF, DKIM, DMARC)
@@ -106,6 +107,7 @@ SMTP_FROM=noreply@yourdomain.com
 ```
 
 #### SendGrid Setup Steps
+
 1. Create SendGrid account and verify domain
 2. Generate API key with mail send permissions
 3. Configure domain authentication
@@ -122,6 +124,7 @@ SMTP_FROM=noreply@yourdomain.com
 ```
 
 #### Resend Setup Steps
+
 1. Create Resend account and add domain
 2. Generate API key
 3. Verify DNS records
@@ -158,9 +161,7 @@ export const EmailLayout = ({ preview, children }: EmailLayoutProps) => {
       {preview && <Preview>{preview}</Preview>}
       <Body className="bg-gray-100 font-sans">
         <Container className="mx-auto py-12 px-4">
-          <div className="bg-white rounded-lg shadow-lg p-8">
-            {children}
-          </div>
+          <div className="bg-white rounded-lg shadow-lg p-8">{children}</div>
         </Container>
       </Body>
     </Html>
@@ -181,24 +182,28 @@ interface TeamInviteProps {
   inviteUrl: string;
 }
 
-export const TeamInvite = ({ inviterName, teamName, inviteUrl }: TeamInviteProps) => {
+export const TeamInvite = ({
+  inviterName,
+  teamName,
+  inviteUrl,
+}: TeamInviteProps) => {
   return (
     <EmailLayout preview={`Join ${teamName} on ${app.name}`}>
       <Heading className="text-2xl font-bold text-gray-900 mb-4">
         You're invited to join {teamName}
       </Heading>
-      
+
       <Text className="text-gray-700 mb-6">
         {inviterName} has invited you to join the {teamName} team on {app.name}.
       </Text>
-      
+
       <Button
         href={inviteUrl}
         className="bg-blue-600 text-white px-6 py-3 rounded-md font-medium"
       >
         Accept Invitation
       </Button>
-      
+
       <Text className="text-sm text-gray-500 mt-8">
         If you don't want to join this team, you can ignore this email.
       </Text>
@@ -302,7 +307,10 @@ export const validateEmailForSignup = (email: string): boolean => {
 
 ```typescript
 // Check if email domain matches team domain
-export const validateEmailDomain = (email: string, allowedDomains: string[]): boolean => {
+export const validateEmailDomain = (
+  email: string,
+  allowedDomains: string[]
+): boolean => {
   const domain = email.split('@')[1]?.toLowerCase();
   return allowedDomains.includes(domain);
 };
@@ -360,7 +368,10 @@ npm run email build --dir components/emailTemplates
 ```typescript
 // Create test endpoint for development
 // pages/api/test-email.ts
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
   if (process.env.NODE_ENV === 'production') {
     return res.status(404).json({ error: 'Not found' });
   }
@@ -400,11 +411,12 @@ const emailRateLimit = new Map();
 export const checkEmailRateLimit = (email: string): boolean => {
   const now = Date.now();
   const lastSent = emailRateLimit.get(email) || 0;
-  
-  if (now - lastSent < 60000) { // 1 minute between emails
+
+  if (now - lastSent < 60000) {
+    // 1 minute between emails
     return false;
   }
-  
+
   emailRateLimit.set(email, now);
   return true;
 };
@@ -423,7 +435,7 @@ export const sendEmailSafely = async (data: EmailData) => {
       subject: data.subject,
       error: error.message,
     });
-    
+
     // Don't throw - continue application flow
     // Log to monitoring service (Sentry)
     Sentry.captureException(error);
@@ -439,26 +451,26 @@ export const sendEmailSafely = async (data: EmailData) => {
 // Track email metrics
 export const sendEmailWithMetrics = async (data: EmailData) => {
   const startTime = Date.now();
-  
+
   try {
     await sendEmail(data);
-    
+
     // Track success metrics
-    recordMetric('email.sent', 1, { 
+    recordMetric('email.sent', 1, {
       type: data.type,
-      provider: env.smtp.host 
+      provider: env.smtp.host,
     });
   } catch (error) {
     // Track failure metrics
-    recordMetric('email.failed', 1, { 
+    recordMetric('email.failed', 1, {
       type: data.type,
-      error: error.code 
+      error: error.code,
     });
     throw error;
   } finally {
     const duration = Date.now() - startTime;
-    recordMetric('email.duration', duration, { 
-      type: data.type 
+    recordMetric('email.duration', duration, {
+      type: data.type,
     });
   }
 };
@@ -471,8 +483,10 @@ export const sendEmailWithMetrics = async (data: EmailData) => {
 ```tsx
 // Add to EmailLayout.tsx
 <Text className="text-xs text-gray-500 mt-8 pt-4 border-t">
-  {app.company.name}<br/>
-  {app.company.address}<br/>
+  {app.company.name}
+  <br />
+  {app.company.address}
+  <br />
   <Link href="/unsubscribe" className="text-blue-600">
     Unsubscribe
   </Link>
@@ -500,18 +514,21 @@ export const trackEmailConsent = async (userId: string, emailType: string) => {
 ### Common Issues
 
 **Emails Not Sending**
+
 - Verify SMTP credentials are correct
 - Check if SMTP_HOST environment variable is set
 - Test connection with provider's SMTP server
 - Review firewall and network settings
 
 **Emails Going to Spam**
+
 - Verify SPF, DKIM, and DMARC records
 - Use authenticated domain for sending
 - Avoid spam trigger words in subject/content
 - Monitor sender reputation
 
 **Template Rendering Issues**
+
 - Ensure React Email components are properly imported
 - Check for syntax errors in JSX templates
 - Verify all required props are passed to templates
@@ -528,6 +545,7 @@ const transporter = nodemailer.createTransporter({
 ```
 
 ## Related Files
+
 - `lib/email/sendEmail.ts:1` - Core email sending function
 - `lib/email/sendMagicLink.ts:1` - Magic link email implementation
 - `components/emailTemplates/EmailLayout.tsx:1` - Base email template

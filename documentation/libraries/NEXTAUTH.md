@@ -5,6 +5,7 @@ NextAuth.js is the primary authentication framework for this SaaS starter kit, p
 ## Overview
 
 NextAuth.js handles:
+
 - Multiple authentication providers (OAuth, credentials, email)
 - Session management with JWT or database sessions
 - CSRF protection and security headers
@@ -37,11 +38,11 @@ EMAIL_FROM=noreply@yourapp.com
 The main configuration is in `lib/nextAuth.ts`:
 
 ```typescript
-import NextAuth from "next-auth"
-import GitHubProvider from "next-auth/providers/github"
-import GoogleProvider from "next-auth/providers/google"
-import EmailProvider from "next-auth/providers/email"
-import CredentialsProvider from "next-auth/providers/credentials"
+import NextAuth from 'next-auth';
+import GitHubProvider from 'next-auth/providers/github';
+import GoogleProvider from 'next-auth/providers/google';
+import EmailProvider from 'next-auth/providers/email';
+import CredentialsProvider from 'next-auth/providers/credentials';
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   providers: [
@@ -59,13 +60,13 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     }),
     CredentialsProvider({
       credentials: {
-        email: { label: "Email", type: "email" },
-        password: { label: "Password", type: "password" },
+        email: { label: 'Email', type: 'email' },
+        password: { label: 'Password', type: 'password' },
       },
       authorize: async (credentials) => {
         // Custom authentication logic
-        const user = await authenticateUser(credentials)
-        return user || null
+        const user = await authenticateUser(credentials);
+        return user || null;
       },
     }),
   ],
@@ -77,14 +78,14 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   callbacks: {
     async session({ session, token }) {
       // Customize session object
-      return session
+      return session;
     },
     async jwt({ token, user }) {
       // Customize JWT token
-      return token
+      return token;
     },
   },
-})
+});
 ```
 
 ## Providers Configuration
@@ -92,11 +93,13 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 ### OAuth Providers
 
 #### GitHub OAuth
+
 1. Go to GitHub Settings > Developer settings > OAuth Apps
 2. Create new OAuth App with callback URL: `http://localhost:3000/api/auth/callback/github`
 3. Add client ID and secret to environment variables
 
 #### Google OAuth
+
 1. Go to Google Cloud Console > APIs & Services > Credentials
 2. Create OAuth 2.0 Client ID with callback URL: `http://localhost:3000/api/auth/callback/google`
 3. Add client ID and secret to environment variables
@@ -116,7 +119,7 @@ EmailProvider({
     },
   },
   from: process.env.EMAIL_FROM,
-})
+});
 ```
 
 ### Credentials Provider
@@ -126,49 +129,51 @@ For email/password authentication:
 ```typescript
 CredentialsProvider({
   credentials: {
-    email: { label: "Email", type: "email" },
-    password: { label: "Password", type: "password" },
+    email: { label: 'Email', type: 'email' },
+    password: { label: 'Password', type: 'password' },
   },
   authorize: async (credentials) => {
-    const { email, password } = credentials
-    
+    const { email, password } = credentials;
+
     // Validate credentials against database
-    const user = await getUserFromDb(email, password)
-    
+    const user = await getUserFromDb(email, password);
+
     if (user && validatePassword(password, user.hashedPassword)) {
       return {
         id: user.id,
         email: user.email,
         name: user.name,
-      }
+      };
     }
-    
-    return null
+
+    return null;
   },
-})
+});
 ```
 
 ## Session Management
 
 ### JWT Strategy (Default)
+
 Best for serverless deployments:
 
 ```typescript
 export const { handlers, auth } = NextAuth({
-  session: { strategy: "jwt" },
+  session: { strategy: 'jwt' },
   // ... other config
-})
+});
 ```
 
 ### Database Strategy
+
 For persistent sessions with database storage:
 
 ```typescript
 export const { handlers, auth } = NextAuth({
   adapter: PrismaAdapter(prisma),
-  session: { strategy: "database" },
+  session: { strategy: 'database' },
   // ... other config
-})
+});
 ```
 
 ## Usage in Components
@@ -192,7 +197,7 @@ export default function LoginButton() {
       </>
     )
   }
-  
+
   return (
     <>
       <p>Not signed in</p>
@@ -226,16 +231,16 @@ export default async function Profile() {
 ### API Routes
 
 ```typescript
-import { auth } from "@/lib/nextAuth"
+import { auth } from '@/lib/nextAuth';
 
 export async function GET() {
-  const session = await auth()
+  const session = await auth();
 
   if (!session) {
-    return Response.json({ error: "Not authenticated" }, { status: 401 })
+    return Response.json({ error: 'Not authenticated' }, { status: 401 });
   }
 
-  return Response.json({ user: session.user })
+  return Response.json({ user: session.user });
 }
 ```
 
@@ -252,13 +257,13 @@ npm install @auth/prisma-adapter
 Configure in NextAuth:
 
 ```typescript
-import { PrismaAdapter } from "@auth/prisma-adapter"
-import prisma from "@/lib/prisma"
+import { PrismaAdapter } from '@auth/prisma-adapter';
+import prisma from '@/lib/prisma';
 
 export const { handlers, auth } = NextAuth({
   adapter: PrismaAdapter(prisma),
   // ... other config
-})
+});
 ```
 
 ### Required Database Schema
@@ -315,22 +320,24 @@ model VerificationToken {
 ## Security Best Practices
 
 ### Environment Variables
+
 - Always use strong, unique `NEXTAUTH_SECRET` in production
 - Store OAuth secrets securely
 - Use different secrets for different environments
 
 ### CSRF Protection
+
 NextAuth.js automatically handles CSRF protection. Ensure your forms include the CSRF token:
 
 ```typescript
-import { getCsrfToken } from "next-auth/react"
+import { getCsrfToken } from 'next-auth/react';
 
 export async function getServerSideProps(context) {
   return {
     props: {
       csrfToken: await getCsrfToken(context),
     },
-  }
+  };
 }
 ```
 
@@ -339,15 +346,15 @@ export async function getServerSideProps(context) {
 ```typescript
 export const { handlers, auth } = NextAuth({
   session: {
-    strategy: "jwt",
+    strategy: 'jwt',
     maxAge: 30 * 24 * 60 * 60, // 30 days
   },
   cookies: {
-    secure: process.env.NODE_ENV === "production",
+    secure: process.env.NODE_ENV === 'production',
     httpOnly: true,
-    sameSite: "lax",
+    sameSite: 'lax',
   },
-})
+});
 ```
 
 ## Testing
@@ -355,12 +362,12 @@ export const { handlers, auth } = NextAuth({
 ### Mock Authentication in Tests
 
 ```typescript
-import { jest } from '@jest/globals'
+import { jest } from '@jest/globals';
 
 // Mock NextAuth
 jest.mock('next-auth', () => ({
   default: jest.fn(),
-}))
+}));
 
 jest.mock('next-auth/react', () => ({
   useSession: () => ({
@@ -371,7 +378,7 @@ jest.mock('next-auth/react', () => ({
   }),
   signIn: jest.fn(),
   signOut: jest.fn(),
-}))
+}));
 ```
 
 ## Troubleshooting
@@ -388,14 +395,15 @@ Enable debug logging in development:
 
 ```typescript
 export const { handlers, auth } = NextAuth({
-  debug: process.env.NODE_ENV === "development",
+  debug: process.env.NODE_ENV === 'development',
   // ... other config
-})
+});
 ```
 
 ## Migration Guide
 
 When upgrading NextAuth.js versions, refer to the official migration guides and update:
+
 - Configuration syntax
 - Callback signatures
 - Provider configurations
