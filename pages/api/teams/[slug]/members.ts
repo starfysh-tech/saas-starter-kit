@@ -7,11 +7,12 @@ import {
   removeTeamMember,
   throwIfNoTeamAccess,
 } from 'models/team';
-import { throwIfNotAllowed } from 'models/user';
+import { throwIfNotAllowed, updateUser } from 'models/user';
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { recordMetric } from '@/lib/metrics';
 import { countTeamMembers, updateTeamMember } from 'models/teamMember';
 import { validateMembershipOperation } from '@/lib/rbac';
+import { hashPassword } from '@/lib/auth';
 import {
   deleteMemberSchema,
   updateMemberSchema,
@@ -29,6 +30,9 @@ export default async function handler(
       case 'GET':
         await handleGET(req, res);
         break;
+      case 'POST':
+        await handlePOST(req, res);
+        break;
       case 'DELETE':
         await handleDELETE(req, res);
         break;
@@ -39,7 +43,7 @@ export default async function handler(
         await handlePATCH(req, res);
         break;
       default:
-        res.setHeader('Allow', 'GET, DELETE, PUT, PATCH');
+        res.setHeader('Allow', 'GET, POST, DELETE, PUT, PATCH');
         res.status(405).json({
           error: { message: `Method ${method} Not Allowed` },
         });
@@ -182,4 +186,59 @@ const handlePATCH = async (req: NextApiRequest, res: NextApiResponse) => {
   recordMetric('member.role.updated');
 
   res.status(200).json({ data: memberUpdated });
+};
+
+// Reset password for a team member (admin action)
+const handlePOST = async (req: NextApiRequest, res: NextApiResponse) => {
+  const teamMember = await throwIfNoTeamAccess(req, res);
+  throwIfNotAllowed(teamMember, 'team_member', 'update');
+
+  const { action, memberId } = req.body;
+
+  if (action !== 'reset-password') {
+    throw new ApiError(400, 'Invalid action. Only reset-password is supported.');
+  }
+
+  if (!memberId) {
+    throw new ApiError(400, 'Member ID is required.');
+  }
+
+  // Verify the member exists and is part of this team
+  const members = await getTeamMembers(teamMember.team.slug);
+  const targetMember = members.find(m => m.userId === memberId);
+  
+  if (!targetMember) {
+    throw new ApiError(404, 'Member not found in this team.');
+  }
+
+  // Generate a temporary password (12 chars, letters and numbers)
+  const tempPassword = Math.random().toString(36).slice(2, 14);
+  const hashedPassword = await hashPassword(tempPassword);
+
+  // Update the user's password
+  const updatedUser = await updateUser({
+    where: { id: memberId },
+    data: { password: hashedPassword },
+  });
+
+  if (!updatedUser) {
+    throw new ApiError(500, 'Failed to reset password.');
+  }
+
+  // Log the admin password reset action
+  sendAudit({
+    action: 'user.password.reset',
+    user: teamMember.user,
+    team: teamMember.team,
+    crud: 'u',
+  });
+
+  recordMetric('user.password.reset');
+
+  res.status(200).json({ 
+    data: { 
+      message: 'Password reset successfully.',
+      temporaryPassword: tempPassword
+    }
+  });
 };

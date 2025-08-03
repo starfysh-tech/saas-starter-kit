@@ -12,6 +12,7 @@ import UpdateMemberRole from './UpdateMemberRole';
 import { defaultHeaders } from '@/lib/common';
 import type { ApiResponse } from 'types';
 import ConfirmationDialog from '../shared/ConfirmationDialog';
+import PasswordResetDialog from '../shared/PasswordResetDialog';
 import { useState } from 'react';
 import { Table } from '@/components/shared/table/Table';
 
@@ -24,6 +25,9 @@ const Members = ({ team }: { team: Team }) => {
     useState<TeamMemberWithUser | null>(null);
   const [confirmationDialogVisible, setConfirmationDialogVisible] =
     useState(false);
+  const [passwordResetDialogVisible, setPasswordResetDialogVisible] =
+    useState(false);
+  const [temporaryPassword, setTemporaryPassword] = useState('');
 
   const { isLoading, isError, members, mutateTeamMembers } = useTeamMembers(
     team.slug
@@ -65,6 +69,33 @@ const Members = ({ team }: { team: Team }) => {
 
     mutateTeamMembers();
     toast.success(t('member-deleted'));
+  };
+
+  const resetMemberPassword = async (member: TeamMemberWithUser) => {
+    const response = await fetch(`/api/teams/${team.slug}/members`, {
+      method: 'POST',
+      headers: defaultHeaders,
+      body: JSON.stringify({
+        action: 'reset-password',
+        memberId: member.userId,
+      }),
+    });
+
+    const json = (await response.json()) as ApiResponse;
+
+    if (!response.ok) {
+      toast.error(json.error.message);
+      return;
+    }
+
+    const tempPassword = (json.data as any)?.temporaryPassword;
+    if (tempPassword) {
+      setSelectedMember(member);
+      setTemporaryPassword(tempPassword);
+      setPasswordResetDialogVisible(true);
+    } else {
+      toast.error('Failed to generate temporary password');
+    }
   };
 
   const canUpdateRole = (member: TeamMember) => {
@@ -125,18 +156,21 @@ const Members = ({ team }: { team: Team }) => {
                 ),
               },
               {
-                buttons: canRemoveMember(member)
-                  ? [
-                      {
-                        color: 'error',
-                        text: t('remove'),
-                        onClick: () => {
-                          setSelectedMember(member);
-                          setConfirmationDialogVisible(true);
-                        },
-                      },
-                    ]
-                  : [],
+                buttons: [
+                  ...(canUpdateRole(member) ? [{
+                    color: 'warning',
+                    text: 'Reset Password',
+                    onClick: () => resetMemberPassword(member),
+                  }] : []),
+                  ...(canRemoveMember(member) ? [{
+                    color: 'error',
+                    text: t('remove'),
+                    onClick: () => {
+                      setSelectedMember(member);
+                      setConfirmationDialogVisible(true);
+                    },
+                  }] : []),
+                ],
               },
             ],
           };
@@ -154,6 +188,18 @@ const Members = ({ team }: { team: Team }) => {
           email: selectedMember?.user.email,
         })}
       </ConfirmationDialog>
+
+      <PasswordResetDialog
+        visible={passwordResetDialogVisible}
+        temporaryPassword={temporaryPassword}
+        memberName={selectedMember?.user.name || ''}
+        onClose={() => {
+          setPasswordResetDialogVisible(false);
+          setTemporaryPassword('');
+          setSelectedMember(null);
+        }}
+      />
+
       <InviteMember visible={visible} setVisible={setVisible} team={team} />
     </div>
   );

@@ -20,12 +20,13 @@ type EventType =
   | 'webhook.update'
   | 'team.create'
   | 'team.update'
-  | 'team.delete';
+  | 'team.delete'
+  | 'user.password.reset';
 
 type Request = {
   action: EventType;
   user: User;
-  team: Team;
+  team?: Team;
   crud: CRUD;
   // target: Target;
 };
@@ -60,9 +61,12 @@ export const sendAudit = async (request: Request) => {
   const event: Event = {
     action,
     crud,
-    group: {
+    group: team ? {
       id: team.id,
       name: team.name,
+    } : {
+      id: user.id,
+      name: user.name as string,
     },
     actor: {
       id: user.id,

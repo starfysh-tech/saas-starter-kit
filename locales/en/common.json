@@ -246,5 +246,14 @@
   "internal-server-error": "Internal Server Error !",
   "unable-to-find": "We're unable to find out what's happening! We suggest you to",
   "try-again-later": "or visit here later.",
-  "multiple-sso-teams": "User belongs to multiple teams with SSO enabled. Please enter your team slug to get started."
+  "multiple-sso-teams": "User belongs to multiple teams with SSO enabled. Please enter your team slug to get started.",
+  "password-reset-complete": "Password Reset Complete",
+  "password-reset-description": "A new temporary password has been generated for {{name}}.",
+  "security-notice": "Important Security Notice",
+  "password-one-time-warning": "This password will only be shown once. Make sure to copy it and share it securely with the user.",
+  "temporary-password": "Temporary Password",
+  "copied": "Copied!",
+  "copy": "Copy",
+  "password-change-reminder": "The user should change this password immediately after logging in.",
+  "password-reset-confirm-close": "I understand, close this dialog"
 }

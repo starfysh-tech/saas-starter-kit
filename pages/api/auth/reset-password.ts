@@ -4,6 +4,7 @@ import { ApiError } from 'next/dist/server/api-utils';
 import { recordMetric } from '@/lib/metrics';
 import { unlockAccount } from '@/lib/accountLock';
 import env from '@/lib/env';
+import { sendAudit } from '@/lib/retraced';
 import { updateUser } from 'models/user';
 import { deletePasswordReset, getPasswordReset } from 'models/passwordReset';
 import { deleteManySessions } from 'models/session';
@@ -80,6 +81,17 @@ const handlePOST = async (req: NextApiRequest, res: NextApiResponse) => {
   }
 
   await deletePasswordReset(token);
+
+  // Log password reset for audit trail
+  sendAudit({
+    action: 'user.password.reset',
+    user: {
+      id: updatedUser.id,
+      name: updatedUser.name,
+      email: updatedUser.email,
+    } as any,
+    crud: 'u',
+  });
 
   recordMetric('user.password.reset');
 

@@ -37,10 +37,10 @@ The division embodies the Silicon Valley ethos of moonshot projects, cutting-edg
 
 ### Executive Leadership
 
-| Name               | Title                          | Email                         | Phone          | Role in Platform                       |
-|--------------------|--------------------------------|-------------------------------|----------------|--------------------------------------|
-| Gavin Belson       | CEO, Hooli                     | gavin.belson@hooli.com        | +1-415-555-0199| Account Owner / Executive Stakeholder|
-| Monica Hall        | COO, Hooli                    | monica.hall@hooli.com         | +1-415-555-0123| Executive Sponsor / Demo Champion    |
+| Name               | Title       | Email                 | Password | Phone          | Role in Platform                       |
+|--------------------|-------------|-----------------------|----------|----------------|--------------------------------------|
+| Gavin Belson       | CEO, Hooli  | gavin.belson@hooli.health    | dl1kni10uxp | +1-415-555-0199| Account Owner / Executive Stakeholder|
+| Monica Hall        | COO, Hooli  | monica.hall@hooli.health   | monica2025 | +1-415-555-0123| Executive Sponsor / Demo Champion    |
 
 ### Hooli Health Division Leadership
 
