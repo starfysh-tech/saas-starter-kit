@@ -24,3 +24,7 @@ export function register() {
     });
   }
 }
+
+export async function onRequestError(err: Error, request: Request, context: { errorSource: string }) {
+  Sentry.captureRequestError(err, request);
+}

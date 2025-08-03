@@ -1,30 +1,16 @@
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="https://github.com/boxyhq/jackson/assets/66887028/871d9c0f-d351-49bb-9458-2542830d7910">
-  <source media="(prefers-color-scheme: light)" srcset="https://github.com/boxyhq/jackson/assets/66887028/4073c181-0653-4d5b-b74f-e7e84fe79da8">
-  <img alt="BoxyHQ Banner" src="https://github.com/boxyhq/jackson/assets/66887028/b40520b7-dbce-400b-88d3-400d1c215ea1">
+  <source media="(prefers-color-scheme: dark)" srcset="/mqol-logo-white.png">
+  <source media="(prefers-color-scheme: light)" srcset="/mqol-logo.png">
+  <img alt="MQOL Logo" src="/mqol-logo.png" width="300">
 </picture>
 
-# ⭐ Enterprise SaaS Starter Kit
+# 🏥 The Nest - MQOL Portal
 
-<p>
-    <a href="https://github.com/boxyhq/saas-starter-kit/stargazers"><img src="https://img.shields.io/github/stars/boxyhq/saas-starter-kit" alt="Github stargazers"></a>
-    <a href="https://github.com/boxyhq/saas-starter-kit/issues"><img src="https://img.shields.io/github/issues/boxyhq/saas-starter-kit" alt="Github issues"></a>
-    <a href="https://github.com/boxyhq/saas-starter-kit/blob/main/LICENSE"><img src="https://img.shields.io/github/license/boxyhq/saas-starter-kit" alt="license"></a>
-    <a href="https://twitter.com/BoxyHQ"><img src="https://img.shields.io/twitter/follow/BoxyHQ?style=social" alt="Twitter"></a>
-    <a href="https://www.linkedin.com/company/boxyhq"><img src="https://img.shields.io/badge/LinkedIn-blue" alt="LinkedIn"></a>
-    <a href="https://discord.gg/uyb7pYt4Pa"><img src="https://img.shields.io/discord/877585485235630130" alt="Discord"></a>
-</p>
+Multi-tenant nurse portal platform for secure patient onboarding workflows. Built with Next.js, featuring enterprise-grade authentication, role-based access control, and healthcare compliance capabilities.
 
-The Open Source Next.js SaaS boilerplate for Enterprise SaaS app development.
+## 🏥 About The Nest
 
-Please star ⭐ the repo if you want us to continue developing and improving the SaaS Starter Kit! 😀
-
-## 📖 Additional Resources
-
-Video - [BoxyHQ's SaaS Starter Kit: Your Ultimate Enterprise-Compliant Boilerplate](https://www.youtube.com/watch?v=oF8QIwQIhyo) <br>
-Blog - [Enterprise-ready Saas Starter Kit](https://boxyhq.com/blog/enterprise-ready-saas-starter-kit)
-
-Next.js-based SaaS starter kit saves you months of development by starting you off with all the features that are the same in every product, so you can focus on what makes your app unique.
+The Nest is MQOL's internal portal platform providing nursing teams with secure, compliant tools for patient onboarding workflows. Built on enterprise-grade infrastructure with multi-tenant architecture, role-based permissions, and integrated compliance features.
 
 ### 📚 API Integration Documentation
 
@@ -76,17 +62,7 @@ Each guide includes setup instructions, configuration examples, security best pr
 
 ## 🚀 Deployment
 
-<a href="https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fboxyhq%2Fsaas-starter-kit&env=NEXTAUTH_SECRET,SMTP_HOST,SMTP_PORT,SMTP_USER,SMTP_PASSWORD,SMTP_FROM,DATABASE_URL,APP_URL">
-<img width="90" alt="Deploy with Vercel" src="https://vercel.com/button" />
-</a>
-
-<a href="https://heroku.com/deploy" alt="Deploy to Heroku">
-<img alt="Deploy to Heroku" src="https://www.herokucdn.com/deploy/button.svg" />
-</a>
-
-<a href="https://cloud.digitalocean.com/apps/new?repo=https://github.com/boxyhq/saas-starter-kit/tree/main" alt="Deploy to DO">
-<img width="200" alt="Deploy to DO" src="https://www.deploytodo.com/do-btn-blue-ghost.svg" />
-</a>
+This is an internal MQOL portal. Deployment instructions and environment configurations are managed through internal DevOps processes.
 
 ## ✨ Getting Started
 
@@ -103,11 +79,10 @@ Please follow these simple steps to get a local copy up and running.
 
 #### 1. Setup
 
-- [Fork](https://github.com/boxyhq/saas-starter-kit/fork) the repository
-- Clone the repository by using this command:
+- Clone the repository:
 
 ```bash
-git clone https://github.com/<your_github_username>/saas-starter-kit.git
+git clone https://github.com/mqol/saas-starter-kit.git
 ```
 
 #### 2. Go to the project folder
@@ -257,33 +232,42 @@ The default login options are email and GitHub. Configure below:
 - Billing & subscriptions
 - Unit and integration tests
 
-## ✨ Contributing
+## 🚀 Feature Development
 
-Thanks for taking the time to contribute! Contributions make the open-source community a fantastic place to learn, inspire, and create. Any contributions you make are greatly appreciated.
+The platform uses an intelligent agent-based system for adding new features:
 
-Please try to create bug reports that are:
+### Development Agents
 
-- _Reproducible._ Include steps to reproduce the problem.
-- _Specific._ Include as much detail as possible: which version, what environment, etc.
-- _Unique._ Do not duplicate existing opened issues.
-- _Scoped to a Single Bug._ One bug per report.
+• **@quick-implement** - Simple 1-3 file changes, bug fixes, component updates
+• **@structured-work** - Medium complexity features with PRD→tasks→execution workflow  
+• **@add-feature** - Complex features requiring 5-pass iterative architectural planning
 
-[Contributing Guide](https://github.com/boxyhq/saas-starter-kit/blob/main/CONTRIBUTING.md)
+### Agent Usage
 
-## 🤩 Community
+```bash
+# Simple changes
+@quick-implement Add validation to email input field
 
-- [Discord](https://discord.gg/uyb7pYt4Pa) (For live discussion with the Open-Source Community and BoxyHQ team)
-- [Twitter](https://twitter.com/BoxyHQ) / [LinkedIn](https://www.linkedin.com/company/boxyhq) (Follow us)
-- [Youtube](https://www.youtube.com/@boxyhq) (Watch community events and tutorials)
-- [GitHub Issues](https://github.com/boxyhq/saas-starter-kit/issues) (Contributions, report issues, and product ideas)
+# Medium complexity
+@structured-work Add user notification preferences system
 
-## 🌍 Contributors
+# Complex features  
+@add-feature Add comprehensive audit logging with export capabilities
+```
 
-<a href="https://github.com/boxyhq/saas-starter-kit/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=boxyhq/saas-starter-kit" />
-</a>
+### Feature Development Process
 
-Made with [contrib.rocks](https://contrib.rocks).
+1. **Choose appropriate agent** based on feature complexity
+2. **Agent analyzes codebase** and existing patterns
+3. **Interactive refinement** through multiple passes
+4. **Implementation planning** with MVP and enhancement phases
+5. **Technical validation** ensuring architectural consistency
+
+All feature work is saved to `/features/` directory. See [Feature Development Guide](./documentation/feature-development-template.md) for complete details.
+
+## 🏥 MQOL Development
+
+This is an internal portal for MQOL. For development questions or technical support, please contact the internal development team.
 
 ## 🛡️ License
 

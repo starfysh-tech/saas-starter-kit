@@ -58,7 +58,10 @@
       "mcp__context7__get-library-docs",
       "WebFetch(domain:raw.githubusercontent.com)",
       "Bash(claude mcp)",
-      "Bash(claude mcp:*)"
+      "Bash(claude mcp:*)",
+      "mcp__playwright__browser_navigate",
+      "mcp__executeautomation-playwright__playwright_get_visible_html",
+      "WebFetch(domain:docs.anthropic.com)"
     ],
     "deny": []
   },
