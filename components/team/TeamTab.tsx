@@ -11,6 +11,7 @@ import type { Team } from '@prisma/client';
 import classNames from 'classnames';
 import useCanAccess from 'hooks/useCanAccess';
 import Link from 'next/link';
+import React from 'react';
 import { TeamFeature } from 'types';
 
 interface TeamTabProps {
@@ -23,14 +24,20 @@ interface TeamTabProps {
 const TeamTab = ({ activeTab, team, heading, teamFeatures }: TeamTabProps) => {
   const { canAccess } = useCanAccess();
 
-  const navigations = [
-    {
-      name: 'Settings',
-      href: `/teams/${team.slug}/settings`,
-      active: activeTab === 'settings',
-      icon: Cog6ToothIcon,
-    },
-  ];
+  const navigations: {
+    name: string;
+    href: string;
+    active: boolean;
+    icon: React.ComponentType<React.SVGProps<SVGSVGElement>>;
+  }[] = [];
+
+  // Add settings tab
+  navigations.push({
+    name: 'Settings',
+    href: `/teams/${team.slug}/settings`,
+    active: activeTab === 'settings',
+    icon: Cog6ToothIcon,
+  });
 
   if (canAccess('team_member', ['create', 'update', 'read', 'delete'])) {
     navigations.push({

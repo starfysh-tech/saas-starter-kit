@@ -93,6 +93,9 @@ const env = {
   darkModeEnabled: process.env.NEXT_PUBLIC_DARK_MODE !== 'false',
 
   teamFeatures: {
+    dashboard: process.env.FEATURE_TEAM_DASHBOARD !== 'false',
+    patients: process.env.FEATURE_TEAM_PATIENTS !== 'false',
+    reports: process.env.FEATURE_TEAM_REPORTS !== 'false',
     sso: process.env.FEATURE_TEAM_SSO !== 'false',
     dsync: process.env.FEATURE_TEAM_DSYNC !== 'false',
     webhook: process.env.FEATURE_TEAM_WEBHOOK !== 'false',

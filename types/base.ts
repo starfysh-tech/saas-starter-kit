@@ -66,6 +66,9 @@ export type AUTH_PROVIDER =
   | 'idp-initiated';
 
 export interface TeamFeature {
+  dashboard: boolean;
+  patients: boolean;
+  reports: boolean;
   sso: boolean;
   dsync: boolean;
   auditLog: boolean;
