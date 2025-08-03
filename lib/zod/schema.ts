@@ -43,6 +43,7 @@ export const updateTeamSchema = z.object({
   name: teamName,
   slug: slug.transform((slug) => slugify(slug)),
   domain,
+  logo: image.optional(),
 });
 
 export const createTeamSchema = z.object({

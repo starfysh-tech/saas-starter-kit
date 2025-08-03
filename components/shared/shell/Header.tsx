@@ -9,9 +9,11 @@ import {
 } from '@heroicons/react/24/outline';
 import { ChevronDownIcon } from '@heroicons/react/20/solid';
 import useTheme from 'hooks/useTheme';
+import useTeams from 'hooks/useTeams';
 import env from '@/lib/env';
 import { useTranslation } from 'next-i18next';
 import { useCustomSignOut } from 'hooks/useCustomSignout';
+import { useRouter } from 'next/router';
 
 interface HeaderProps {
   setSidebarOpen: React.Dispatch<React.SetStateAction<boolean>>;
@@ -20,8 +22,14 @@ interface HeaderProps {
 const Header = ({ setSidebarOpen }: HeaderProps) => {
   const { toggleTheme } = useTheme();
   const { status, data } = useSession();
+  const { teams } = useTeams();
+  const router = useRouter();
   const { t } = useTranslation('common');
   const signOut = useCustomSignOut();
+
+  const currentTeam = (teams || []).find(
+    (team) => team.slug === router.query.slug
+  );
 
   if (status === 'loading' || !data) {
     return null;
@@ -106,6 +114,16 @@ const Header = ({ setSidebarOpen }: HeaderProps) => {
               </li>
             </ul>
           </div>
+          {currentTeam && (
+            <img
+              src={
+                currentTeam.logo ||
+                `https://api.dicebear.com/7.x/initials/svg?seed=${currentTeam.name}&backgroundColor=3b82f6&textColor=ffffff`
+              }
+              alt={`${currentTeam.name} logo`}
+              className="h-8 w-8 rounded-full object-cover bg-blue-500"
+            />
+          )}
         </div>
       </div>
     </div>

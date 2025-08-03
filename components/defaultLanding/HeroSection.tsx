@@ -19,10 +19,10 @@ const HeroSection = () => {
               {t('get-started')}
             </Link>
             <Link
-              href="https://github.com/boxyhq/saas-starter-kit"
+              href="/auth/join"
               className="btn btn-outline px-8"
             >
-              GitHub
+              Learn More
             </Link>
           </div>
         </div>

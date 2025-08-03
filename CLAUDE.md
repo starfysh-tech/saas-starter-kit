@@ -4,9 +4,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Development Commands
 
-• **Start development server**: `npm run dev` (runs on port 4002)
+• **NEVER Start development server** yourself, check whether it is running first or ask the user to start it.
 • **Build project**: `npm run build` (includes Prisma generation and database push)
-• **Production start**: `npm start` (runs on port 4002)
 • **Type checking**: `npm run check-types`
 • **Linting**: `npm run check-lint`
 • **Format code**: `npm run format`

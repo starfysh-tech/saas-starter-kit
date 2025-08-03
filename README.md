@@ -1,7 +1,7 @@
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="/mqol-logo-white.png">
-  <source media="(prefers-color-scheme: light)" srcset="/mqol-logo.png">
-  <img alt="MQOL Logo" src="/mqol-logo.png" width="300">
+  <source media="(prefers-color-scheme: dark)" srcset="/images/logos/mqol-logo-white.png">
+  <source media="(prefers-color-scheme: light)" srcset="/images/logos/mqol-logo.png">
+  <img alt="MQOL Logo" src="/images/logos/mqol-logo.png" width="300">
 </picture>
 
 # 🏥 The Nest - MQOL Portal
@@ -192,7 +192,7 @@ The default login options are email and GitHub. Configure below:
 
 #### Fully customizable boilerplate out of the box, see images below 👇👇👇
 
-![saas-starter-kit-poster](/public/saas-starter-kit-poster.png)
+![saas-starter-kit-poster](/public/images/graphics/saas-starter-kit-poster.png)
 
 ## 🥇 Features
 

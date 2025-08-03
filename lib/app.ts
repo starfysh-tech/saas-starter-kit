@@ -3,8 +3,8 @@ import env from './env';
 
 const app = {
   version: packageInfo.version,
-  name: 'BoxyHQ',
-  logoUrl: 'https://boxyhq.com/img/logo.png',
+  name: 'MQOL',
+  logoUrl: '/images/logos/mqol-logo-350x93.png',
   url: env.appUrl,
 };
 
