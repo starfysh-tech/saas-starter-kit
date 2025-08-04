@@ -16,18 +16,18 @@ The Nest is MQOL's internal portal platform providing nursing teams with secure,
 
 Complete documentation for all third-party service integrations is available in the `/documentation/` folder:
 
-- **[NextAuth.js](./documentation/NEXTAUTH.md)** - Authentication with multiple providers
-- **[Prisma ORM](./documentation/PRISMA.md)** - Database operations and schema management
-- **[Stripe](./documentation/STRIPE.md)** - Payment processing and subscriptions
-- **[SAML Jackson](./documentation/JACKSON.md)** - Enterprise SSO and directory sync
-- **[Svix](./documentation/SVIX.md)** - Webhook orchestration and events
-- **[Sentry](./documentation/SENTRY.md)** - Error monitoring and performance tracking
-- **[Retraced](./documentation/RETRACED.md)** - Audit logging and compliance
-- **[Mixpanel](./documentation/MIXPANEL.md)** - User analytics and event tracking
-- **[Google reCAPTCHA](./documentation/GOOGLE_RECAPTCHA.md)** - Bot protection and security
-- **[Slack](./documentation/SLACK.md)** - Internal notifications and alerts
-- **[OpenTelemetry](./documentation/OPENTELEMETRY_METRICS.md)** - Observability and metrics
-- **[Email Services](./documentation/EMAIL_SERVICES.md)** - Transactional email delivery
+- **[NextAuth.js](./documentation/libraries/NEXTAUTH.md)** - Authentication with multiple providers
+- **[Prisma ORM](./documentation/libraries/PRISMA.md)** - Database operations and schema management
+- **[Stripe](./documentation/libraries/STRIPE.md)** - Payment processing and subscriptions
+- **[SAML Jackson](./documentation/libraries/JACKSON.md)** - Enterprise SSO and directory sync
+- **[Svix](./documentation/libraries/SVIX.md)** - Webhook orchestration and events
+- **[Sentry](./documentation/libraries/SENTRY.md)** - Error monitoring and performance tracking
+- **[Retraced](./documentation/libraries/RETRACED.md)** - Audit logging and compliance
+- **[Mixpanel](./documentation/libraries/MIXPANEL.md)** - User analytics and event tracking
+- **[Google reCAPTCHA](./documentation/libraries/GOOGLE_RECAPTCHA.md)** - Bot protection and security
+- **[Slack](./documentation/libraries/SLACK.md)** - Internal notifications and alerts
+- **[OpenTelemetry](./documentation/libraries/OPENTELEMETRY_METRICS.md)** - Observability and metrics
+- **[Email Services](./documentation/libraries/EMAIL_SERVICES.md)** - Transactional email delivery
 
 Each guide includes setup instructions, configuration examples, security best practices, and troubleshooting tips.
 
