@@ -13,6 +13,13 @@ enum Role {
   MEMBER
 }
 
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+  PREFER_NOT_TO_SAY
+}
+
 model Account {
   id                String  @id @default(uuid())
   userId            String
@@ -63,10 +70,12 @@ model User {
   invalid_login_attempts Int       @default(0)
   lockedAt               DateTime?
 
-  teamMembers TeamMember[]
-  accounts    Account[]
-  sessions    Session[]
-  invitations Invitation[]
+  teamMembers     TeamMember[]
+  accounts        Account[]
+  sessions        Session[]
+  invitations     Invitation[]
+  createdPatients Patient[]    @relation("PatientCreator")
+  updatedPatients Patient[]    @relation("PatientUpdater")
 }
 
 model Team {
@@ -83,6 +92,7 @@ model Team {
   members         TeamMember[]
   invitations     Invitation[]
   apiKeys         ApiKey[]
+  patients        Patient[]
 
   @@index([billingId])
 }
@@ -144,6 +154,26 @@ model ApiKey {
   team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
 
   @@index([teamId])
+}
+
+model Patient {
+  id        String   @id @default(uuid())
+  teamId    String
+  firstName String
+  lastName  String
+  mobile    String?
+  gender    Gender?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
+  createdBy String
+  updatedBy String?
+
+  team    Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  creator User @relation("PatientCreator", fields: [createdBy], references: [id])
+  updater User? @relation("PatientUpdater", fields: [updatedBy], references: [id])
+
+  @@index([teamId])
+  @@index([teamId, createdAt])
 }
 
 model Subscription {

@@ -915,6 +915,7 @@ Multiple layers of security protection:
    - Configure authentication
 
 2. **Handle Webhook Events**
+
    ```javascript
    // Example webhook handler
    app.post('/webhook', (req, res) => {

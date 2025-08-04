@@ -1,5 +1,5 @@
-import { 
-  Cog6ToothIcon, 
+import {
+  Cog6ToothIcon,
   ChartBarIcon,
   UserGroupIcon,
   DocumentTextIcon,
@@ -48,7 +48,6 @@ const TeamNavigation = ({ slug, activePathname }: NavigationItemsProps) => {
       active: activePathname === `/teams/${slug}/reports`,
     });
   }
-
 
   // Add settings at the bottom
   bottomMenus.push({

@@ -5,7 +5,7 @@
 **Feature Name**: Team Patient Management  
 **Context**: Healthcare SaaS for patient reported outcome data  
 **Scope**: Team-scoped patient management with HIPAA compliance considerations  
-**Current State**: UI placeholder exists, backend implementation missing  
+**Current State**: UI placeholder exists, backend implementation missing
 
 ## Problem Statement
 
@@ -30,12 +30,14 @@ Implement a complete patient management system following existing architectural 
 ## Current State Analysis
 
 ### Existing Components ✅
+
 • UI placeholder at `/pages/teams/[slug]/patients.tsx`
 • Feature flag `FEATURE_TEAM_PATIENTS` configured
 • Navigation integration complete
 • Multi-tenant architecture patterns established
 
 ### Missing Components ❌
+
 • Database Patient model (Prisma schema)
 • Patient CRUD model functions (`/models/patient.ts`)
 • API endpoints (`/pages/api/teams/[slug]/patients/`)
@@ -50,6 +52,7 @@ Implement a complete patient management system following existing architectural 
 **Entity**: Patient  
 **Pattern**: Team-scoped with standard audit fields  
 **Fields**:
+
 ```typescript
 model Patient {
   id        String   @id @default(uuid())
@@ -89,8 +92,8 @@ enum PatientStatus {
 **Resource**: `team_patient`  
 **Actions**: `create`, `read`, `update`, `delete`  
 **Role Access**:
-• OWNER: Full access (*)
-• ADMIN: Full access (*)
+• OWNER: Full access (_)
+• ADMIN: Full access (_)
 • MEMBER: Read-only access
 
 ### API Design
@@ -119,6 +122,7 @@ const createPatientSchema = z.object({
 ## Security & Compliance Considerations
 
 ### HIPAA Compliance
+
 • **Data Minimization**: Collect only necessary demographics
 • **Access Controls**: Role-based permissions for patient data
 • **Audit Logging**: Track all patient data access and modifications
@@ -126,6 +130,7 @@ const createPatientSchema = z.object({
 • **Session Management**: Secure authentication for all operations
 
 ### Multi-Tenant Isolation
+
 • **Team Scoping**: All queries include team-based filtering
 • **Permission Validation**: Verify user access to team before operations
 • **Data Isolation**: No cross-team patient data access
@@ -134,6 +139,7 @@ const createPatientSchema = z.object({
 ## Implementation Phases
 
 ### Phase 1: Core CRUD Operations (MVP)
+
 **Scope**: Basic patient management functionality  
 **Estimated Effort**: 2-3 development sessions
 
@@ -151,6 +157,7 @@ const createPatientSchema = z.object({
 • Multi-tenant isolation enforced
 
 ### Phase 2: Enhanced Features
+
 **Scope**: Search, filtering, and improved UX  
 **Estimated Effort**: 1-2 development sessions
 
@@ -162,6 +169,7 @@ const createPatientSchema = z.object({
 • Enhanced audit logging
 
 ### Phase 3: Integration & Analytics
+
 **Scope**: Integration with outcome tracking  
 **Estimated Effort**: 2-3 development sessions
 
@@ -174,6 +182,7 @@ const createPatientSchema = z.object({
 ## Quality Assurance
 
 ### Testing Requirements
+
 • **Unit Tests**: Model functions and validation schemas
 • **Integration Tests**: API endpoints with proper authentication
 • **E2E Tests**: Complete user workflows through UI
@@ -181,6 +190,7 @@ const createPatientSchema = z.object({
 • **Performance Tests**: Large patient datasets and concurrent users
 
 ### Code Quality Standards
+
 • **TypeScript**: Strict typing for all patient-related code
 • **Error Handling**: Comprehensive error responses and logging
 • **Documentation**: JSDoc comments for all public functions
@@ -189,6 +199,7 @@ const createPatientSchema = z.object({
 ## Migration Strategy
 
 ### Database Changes
+
 ```sql
 -- Add Patient model to schema
 -- Add Gender and PatientStatus enums
@@ -197,12 +208,14 @@ const createPatientSchema = z.object({
 ```
 
 ### Permission Updates
+
 ```typescript
 // Add team_patient resource to permissions.ts
 // Update role definitions to include patient access
 ```
 
 ### Feature Flag Integration
+
 ```typescript
 // Existing FEATURE_TEAM_PATIENTS flag controls access
 // No additional configuration needed
@@ -211,6 +224,7 @@ const createPatientSchema = z.object({
 ## Monitoring & Observability
 
 ### Metrics to Track
+
 • Patient creation/modification rates per team
 • API response times for patient operations
 • Permission denial rates
@@ -218,6 +232,7 @@ const createPatientSchema = z.object({
 • Database query optimization metrics
 
 ### Logging Requirements
+
 • **Audit Logs**: All patient data access and modifications
 • **Security Logs**: Permission violations and unauthorized access attempts
 • **Performance Logs**: Slow queries and high resource usage
@@ -226,12 +241,14 @@ const createPatientSchema = z.object({
 ## Risk Assessment
 
 ### High Risk Items
+
 • **Data Privacy**: Patient data exposure across teams
 • **Permission Bypass**: Inadequate access control validation
 • **Data Integrity**: Concurrent modification conflicts
 • **Performance**: Large patient datasets affecting response times
 
 ### Mitigation Strategies
+
 • **Comprehensive Testing**: Focus on permission boundaries
 • **Code Review**: Security-focused peer review process
 • **Gradual Rollout**: Feature flag allows controlled deployment
@@ -240,12 +257,14 @@ const createPatientSchema = z.object({
 ## Dependencies
 
 ### Internal Dependencies
+
 • Existing team membership verification
 • Permission system functionality
 • Audit logging infrastructure
 • Database connection and ORM
 
 ### External Dependencies
+
 • PostgreSQL database
 • Prisma ORM
 • NextAuth.js for authentication
@@ -254,12 +273,14 @@ const createPatientSchema = z.object({
 ## Success Metrics
 
 ### Functional Success
+
 • Teams can manage patient records efficiently
 • All CRUD operations work correctly
 • Permission system prevents unauthorized access
 • UI provides intuitive patient management experience
 
 ### Non-Functional Success
+
 • API response times under 200ms for typical operations
 • Database queries optimized for team-scoped access
 • No cross-team data leakage incidents
@@ -268,11 +289,13 @@ const createPatientSchema = z.object({
 ## Technical Debt Considerations
 
 ### Immediate Debt
+
 • UI placeholder needs backend integration
 • Missing validation schemas
 • No audit logging for patient operations
 
 ### Future Debt Prevention
+
 • Consistent error handling patterns
 • Comprehensive test coverage
 • Documentation for healthcare compliance
