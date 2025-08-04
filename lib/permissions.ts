@@ -12,7 +12,8 @@ export type Resource =
   | 'team_webhook'
   | 'team_payments'
   | 'team_api_key'
-  | 'team_patient';
+  | 'team_patient'
+  | 'team_patient_baseline';
 
 type RolePermissions = {
   [role in RoleType]: Permission[];
@@ -80,6 +81,10 @@ export const permissions: RolePermissions = {
       resource: 'team_patient',
       actions: '*',
     },
+    {
+      resource: 'team_patient_baseline',
+      actions: '*',
+    },
   ],
   ADMIN: [
     {
@@ -118,6 +123,10 @@ export const permissions: RolePermissions = {
       resource: 'team_patient',
       actions: '*',
     },
+    {
+      resource: 'team_patient_baseline',
+      actions: '*',
+    },
   ],
   MEMBER: [
     {
@@ -127,6 +136,10 @@ export const permissions: RolePermissions = {
     {
       resource: 'team_patient',
       actions: '*',
+    },
+    {
+      resource: 'team_patient_baseline',
+      actions: ['create', 'read', 'update'],
     },
   ],
 };
