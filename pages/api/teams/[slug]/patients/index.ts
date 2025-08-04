@@ -3,6 +3,7 @@ import { getCurrentUserWithTeam, throwIfNoTeamAccess } from 'models/team';
 import { throwIfNotAllowed } from 'models/user';
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { recordMetric } from '@/lib/metrics';
+import { sendAudit } from '@/lib/retraced';
 import env from '@/lib/env';
 import { ApiError } from '@/lib/errors';
 import { createPatientSchema, validateWithSchema } from '@/lib/zod';
@@ -58,12 +59,14 @@ const handleGET = async (req: NextApiRequest, res: NextApiResponse) => {
   recordMetric('patient.fetched');
 
   res.json({
-    data: result.patients,
-    pagination: {
-      total: result.total,
-      hasMore: result.hasMore,
-      limit: options.limit || 50,
-      offset: options.offset || 0,
+    data: {
+      patients: result.patients,
+      pagination: {
+        total: result.total,
+        hasMore: result.hasMore,
+        limit: options.limit || 50,
+        offset: options.offset || 0,
+      },
     },
   });
 };
@@ -86,6 +89,13 @@ const handlePOST = async (req: NextApiRequest, res: NextApiResponse) => {
     mobile,
     gender,
     createdBy: user.id,
+  });
+
+  sendAudit({
+    action: 'patient.create',
+    crud: 'c',
+    user,
+    team: user.team,
   });
 
   recordMetric('patient.created');

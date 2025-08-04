@@ -21,7 +21,12 @@ type EventType =
   | 'team.create'
   | 'team.update'
   | 'team.delete'
-  | 'user.password.reset';
+  | 'user.password.reset'
+  | 'patient.create'
+  | 'patient.update'
+  | 'patient.soft_delete'
+  | 'patient.hard_delete'
+  | 'patient.view';
 
 type Request = {
   action: EventType;

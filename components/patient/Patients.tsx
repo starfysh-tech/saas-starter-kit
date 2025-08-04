@@ -2,7 +2,6 @@
 import { EmptyState, WithLoadingAndError } from '@/components/shared';
 import ConfirmationDialog from '@/components/shared/ConfirmationDialog';
 import type { Patient, Team } from '@prisma/client';
-import { useTranslation } from 'next-i18next';
 import { useState } from 'react';
 import { Button } from 'react-daisyui';
 import { toast } from 'react-hot-toast';
@@ -17,7 +16,6 @@ interface PatientsProps {
 }
 
 const Patients = ({ team }: PatientsProps) => {
-  const { t } = useTranslation('common');
   const { data, isLoading, error, mutate } = usePatients(team.slug);
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
   const [createModalVisible, setCreateModalVisible] = useState(false);
@@ -25,8 +23,8 @@ const Patients = ({ team }: PatientsProps) => {
   const [confirmationDialogVisible, setConfirmationDialogVisible] =
     useState(false);
 
-  // Delete Patient
-  const deletePatient = async (patient: Patient | null) => {
+  // Archive Patient (HIPAA-compliant soft delete)
+  const archivePatient = async (patient: Patient | null) => {
     if (!patient) {
       return;
     }
@@ -35,6 +33,12 @@ const Patients = ({ team }: PatientsProps) => {
       `/api/teams/${team.slug}/patients/${patient.id}`,
       {
         method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          deletionReason: 'Patient record archived through UI',
+        }),
       }
     );
 
@@ -48,7 +52,7 @@ const Patients = ({ team }: PatientsProps) => {
     }
 
     mutate();
-    toast.success(t('patient-deleted'));
+    toast.success('Patient record archived successfully');
   };
 
   const patients = data?.data?.patients ?? [];
@@ -60,7 +64,7 @@ const Patients = ({ team }: PatientsProps) => {
     setEditModalVisible(true);
   };
 
-  const handleDeletePatient = (patient: Patient) => {
+  const handleArchivePatient = (patient: Patient) => {
     setSelectedPatient(patient);
     setConfirmationDialogVisible(true);
   };
@@ -154,9 +158,9 @@ const Patients = ({ team }: PatientsProps) => {
                             onClick: () => handleEditPatient(patient),
                           },
                           {
-                            color: 'error',
-                            text: 'Remove',
-                            onClick: () => handleDeletePatient(patient),
+                            color: 'warning',
+                            text: 'Archive',
+                            onClick: () => handleArchivePatient(patient),
                           },
                         ],
                       },
@@ -167,15 +171,14 @@ const Patients = ({ team }: PatientsProps) => {
             </div>
 
             <ConfirmationDialog
-              title="Remove Patient"
+              title="Archive Patient Record"
               visible={confirmationDialogVisible}
-              onConfirm={() => deletePatient(selectedPatient)}
+              onConfirm={() => archivePatient(selectedPatient)}
               onCancel={() => setConfirmationDialogVisible(false)}
               cancelText="Cancel"
-              confirmText="Remove Patient"
+              confirmText="Archive Patient"
             >
-              Are you sure you want to remove this patient? This action cannot
-              be undone.
+              Are you sure you want to archive this patient record? The record will be preserved for compliance purposes but hidden from active patient lists. This action can be audited but not easily reversed.
             </ConfirmationDialog>
           </>
         )}

@@ -26,7 +26,7 @@ const testPatient = {
   firstName: 'John',
   lastName: 'Doe',
   mobile: '+1234567890',
-  gender: 'MALE' as const,
+  gender: Gender.MALE,
 };
 
 const testPatientMinimal = {
@@ -41,7 +41,8 @@ test.beforeEach(async ({ loginPage }) => {
 });
 
 test.afterEach(async () => {
-  // Cleanup test patients
+  // Cleanup test patients - use hard delete for test cleanup
+  // This is acceptable in test environment for complete cleanup
   await prisma.patient.deleteMany({
     where: {
       OR: [
@@ -197,7 +198,7 @@ test.describe('Patient Management', () => {
       firstName: testPatient.firstName,
       lastName: testPatient.lastName,
       mobile: testPatient.mobile,
-      gender: testPatient.gender,
+      gender: 'MALE',
       createdBy: user.name,
     });
   });
@@ -242,7 +243,7 @@ test.describe('Patient Management', () => {
         firstName: `Patient${i}`,
         lastName: `Test${i}`,
         mobile: `+123456789${i}`,
-        gender: i % 2 === 0 ? ('MALE' as const) : ('FEMALE' as const),
+        gender: i % 2 === 0 ? Gender.MALE : Gender.FEMALE,
       };
       patients.push(patient);
       await patientPage.addPatient(patient);
@@ -253,7 +254,7 @@ test.describe('Patient Management', () => {
       await patientPage.patientExists(patient.firstName, patient.lastName);
     }
 
-    // Cleanup test patients
+    // Cleanup test patients - use hard delete for test cleanup
     await prisma.patient.deleteMany({
       where: {
         firstName: { startsWith: 'Patient' },
@@ -303,7 +304,7 @@ test.describe('Patient Management - Permissions', () => {
         testPatient.lastName
       );
 
-      // Clean up second team patient
+      // Clean up second team patient - use hard delete for test cleanup
       if (secondTeamRecord) {
         await prisma.patient.deleteMany({
           where: {

@@ -766,8 +766,16 @@ Multiple layers of security protection:
 
 - SOC 2 Type II ready
 - GDPR compliant features
-- HIPAA considerations
+- HIPAA-compliant patient data management with 7-year retention
 - Industry-standard security practices
+
+**Healthcare Data Protection:**
+
+- HIPAA-compliant soft delete architecture for patient records
+- 7-year automated retention period for healthcare data
+- Comprehensive audit trails for all patient data operations
+- Role-based access control for patient information
+- Secure archive/unarchive functionality instead of permanent deletion
 
 ### Security Monitoring
 
@@ -933,6 +941,47 @@ Multiple layers of security protection:
      res.status(200).send('OK');
    });
    ```
+
+### Patient Management (Healthcare)
+
+#### Managing Patient Records
+
+1. **Access Patient Management**
+
+   - Navigate to `/teams/{slug}/patients`
+   - Requires `team_patient` read permissions
+   - View paginated list of active patient records
+
+2. **Create New Patient**
+
+   - Click "Add Patient" button
+   - Fill required fields: firstName, lastName
+   - Optional fields: mobile, gender
+   - Submit to create patient record
+   - Automatic audit logging of creation
+
+3. **Update Patient Information**
+
+   - Select patient from list
+   - Edit patient details
+   - Save changes with audit trail
+   - User who made changes is tracked
+
+4. **Archive Patient (HIPAA-Compliant)**
+
+   - Use "Archive" instead of "Delete"
+   - Provide optional deletion reason
+   - Patient record soft deleted with 7-year retention
+   - Automatic audit logging of archive action
+   - Record remains for compliance but excluded from active lists
+
+#### HIPAA Compliance Features
+
+- **Soft Delete Architecture**: Patient records are never permanently deleted immediately
+- **7-Year Retention**: Automatic compliance with healthcare data retention requirements
+- **Audit Trails**: Every patient operation is logged via Retraced
+- **Role-Based Access**: Strict permission controls for patient data access
+- **Secure Search**: Search functionality respects team boundaries and active status
 
 ### Billing and Payments
 

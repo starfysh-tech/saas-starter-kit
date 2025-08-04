@@ -1,6 +1,7 @@
 import fetcher from '@/lib/fetcher';
 import type { Patient } from '@prisma/client';
-import useSWR, { mutate } from 'swr';
+import useSWR from 'swr';
+import { useSWRConfig } from 'swr';
 import type { ApiResponse } from 'types';
 
 interface PatientsResponse {
@@ -20,6 +21,8 @@ interface UsePatientOptions {
 }
 
 const usePatients = (slug: string | undefined, options?: UsePatientOptions) => {
+  const { mutate: globalMutate } = useSWRConfig();
+
   const params = new URLSearchParams();
   if (options?.search) params.append('search', options.search);
   if (options?.limit) params.append('limit', options.limit.toString());
@@ -36,7 +39,11 @@ const usePatients = (slug: string | undefined, options?: UsePatientOptions) => {
   );
 
   const mutatePatients = async () => {
-    mutate(url);
+    // Use global mutate to revalidate all patient-related keys for this team
+    globalMutate(
+      (key) =>
+        typeof key === 'string' && key.startsWith(`/api/teams/${slug}/patients`)
+    );
   };
 
   return {

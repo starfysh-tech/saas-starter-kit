@@ -5,17 +5,17 @@
 **Feature Name**: Team Patient Management  
 **Context**: Healthcare SaaS for patient reported outcome data  
 **Scope**: Team-scoped patient management with HIPAA compliance considerations  
-**Current State**: UI placeholder exists, backend implementation missing
+**Current State**: Fully implemented with HIPAA-compliant soft delete architecture
 
 ## Problem Statement
 
-Healthcare teams need a secure, multi-tenant system to manage patient demographics and track patient-reported outcome data. The current system has a UI placeholder but lacks:
+Healthcare teams need a secure, multi-tenant system to manage patient demographics and track patient-reported outcome data. The system has been fully implemented with:
 
-• Database models for patient data
-• API endpoints for patient operations
-• Permission system integration
-• Data validation and security measures
-• HIPAA-compliant audit trails
+• ✅ Database models for patient data with soft delete architecture
+• ✅ API endpoints for patient operations with HIPAA compliance
+• ✅ Permission system integration for role-based access control
+• ✅ Data validation and security measures
+• ✅ HIPAA-compliant audit trails and 7-year retention policy
 
 ## Solution Overview
 
@@ -29,21 +29,18 @@ Implement a complete patient management system following existing architectural 
 
 ## Current State Analysis
 
-### Existing Components ✅
+### Implemented Components ✅
 
-• UI placeholder at `/pages/teams/[slug]/patients.tsx`
-• Feature flag `FEATURE_TEAM_PATIENTS` configured
-• Navigation integration complete
-• Multi-tenant architecture patterns established
-
-### Missing Components ❌
-
-• Database Patient model (Prisma schema)
-• Patient CRUD model functions (`/models/patient.ts`)
-• API endpoints (`/pages/api/teams/[slug]/patients/`)
-• Permission system updates (`team_patient` resource)
-• Validation schemas for patient data
-• Backend-frontend integration
+• ✅ Complete UI implementation at `/pages/teams/[slug]/patients.tsx`
+• ✅ Feature flag `FEATURE_TEAM_PATIENTS` configured and operational
+• ✅ Navigation integration complete
+• ✅ Multi-tenant architecture patterns established
+• ✅ Database Patient model with HIPAA-compliant soft delete fields
+• ✅ Patient CRUD model functions with audit tracking (`/models/patient.ts`)
+• ✅ API endpoints with comprehensive validation (`/pages/api/teams/[slug]/patients/`)
+• ✅ Permission system integration (`team_patient` resource)
+• ✅ Validation schemas for all patient operations
+• ✅ Complete backend-frontend integration with audit logging
 
 ## Technical Requirements
 
@@ -55,22 +52,31 @@ Implement a complete patient management system following existing architectural 
 
 ```typescript
 model Patient {
-  id        String   @id @default(uuid())
-  teamId    String
-  firstName String
-  lastName  String
-  mobile    String?
-  gender    Gender?
-  status    PatientStatus @default(ACTIVE)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now())
-  createdBy String
+  id              String   @id @default(uuid())
+  teamId          String
+  firstName       String
+  lastName        String
+  mobile          String?
+  gender          Gender?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @default(now())
+  createdBy       String
+  updatedBy       String?
+  
+  // HIPAA-compliant soft delete fields
+  deletedAt       DateTime?
+  deletedBy       String?
+  deletionReason  String?
+  retentionUntil  DateTime?
 
-  team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  creator User @relation(fields: [createdBy], references: [id])
+  team    Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  creator User @relation("PatientCreator", fields: [createdBy], references: [id])
+  updater User? @relation("PatientUpdater", fields: [updatedBy], references: [id])
+  deleter User? @relation("PatientDeleter", fields: [deletedBy], references: [id])
 
   @@index([teamId])
-  @@index([teamId, status])
+  @@index([teamId, createdAt])
+  @@index([teamId, deletedAt])
 }
 
 enum Gender {
@@ -78,12 +84,6 @@ enum Gender {
   FEMALE
   OTHER
   PREFER_NOT_TO_SAY
-}
-
-enum PatientStatus {
-  ACTIVE
-  INACTIVE
-  ARCHIVED
 }
 ```
 
@@ -101,11 +101,11 @@ enum PatientStatus {
 **Base Route**: `/api/teams/[slug]/patients`
 
 **Endpoints**:
-• `GET /api/teams/[slug]/patients` - List patients (paginated)
+• `GET /api/teams/[slug]/patients` - List patients (paginated, excludes archived)
 • `POST /api/teams/[slug]/patients` - Create patient
 • `GET /api/teams/[slug]/patients/[patientId]` - Get patient details
 • `PUT /api/teams/[slug]/patients/[patientId]` - Update patient
-• `DELETE /api/teams/[slug]/patients/[patientId]` - Delete patient
+• `DELETE /api/teams/[slug]/patients/[patientId]` - Archive patient (soft delete with 7-year retention)
 
 ### Validation Schema
 
@@ -125,9 +125,12 @@ const createPatientSchema = z.object({
 
 • **Data Minimization**: Collect only necessary demographics
 • **Access Controls**: Role-based permissions for patient data
-• **Audit Logging**: Track all patient data access and modifications
-• **Data Encryption**: Sensitive fields encrypted at rest
+• **Audit Logging**: Comprehensive tracking via Retraced for all patient operations
+• **Soft Delete Architecture**: 7-year retention period with automatic purging
+• **Data Encryption**: Sensitive fields encrypted at rest and in transit
 • **Session Management**: Secure authentication for all operations
+• **Deletion Tracking**: Full audit trail for archive/restore operations
+• **Retention Management**: Automated compliance with healthcare data retention requirements
 
 ### Multi-Tenant Isolation
 

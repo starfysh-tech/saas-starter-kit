@@ -1,11 +1,9 @@
 import { Error, Loading } from '@/components/shared';
-import { TeamTab } from '@/components/team';
 import useTeam from 'hooks/useTeam';
 import { useTranslation } from 'next-i18next';
 import Patients from './Patients';
-import { TeamFeature } from 'types';
 
-const PatientsContainer = ({ teamFeatures }: { teamFeatures: TeamFeature }) => {
+const PatientsContainer = () => {
   const { t } = useTranslation('common');
 
   const { isLoading, isError, team } = useTeam();
@@ -22,12 +20,7 @@ const PatientsContainer = ({ teamFeatures }: { teamFeatures: TeamFeature }) => {
     return <Error message={t('team-not-found')} />;
   }
 
-  return (
-    <>
-      <TeamTab activeTab="patients" team={team} teamFeatures={teamFeatures} />
-      <Patients team={team} />
-    </>
-  );
+  return <Patients team={team} />;
 };
 
 export default PatientsContainer;

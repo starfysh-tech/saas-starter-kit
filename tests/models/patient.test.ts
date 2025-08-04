@@ -4,13 +4,13 @@ import {
   fetchPatients,
   fetchPatientById,
   updatePatient,
-  deletePatient,
+  softDeletePatient,
   getPatientCount,
-} from '@/models/patient';
-import { prisma } from '@/lib/prisma';
+} from '../../models/patient';
+import { prisma } from '../../lib/prisma';
 
 // Mock Prisma
-jest.mock('@/lib/prisma', () => ({
+jest.mock('../../lib/prisma', () => ({
   prisma: {
     patient: {
       create: jest.fn(),
@@ -41,6 +41,10 @@ describe('Patient Model', () => {
     updatedAt: new Date(),
     createdBy: mockUserId,
     updatedBy: null,
+    deletedAt: null,
+    deletedBy: null,
+    deletionReason: null,
+    retentionUntil: null,
     creator: {
       name: 'Test User',
       email: 'test@example.com',
@@ -163,7 +167,7 @@ describe('Patient Model', () => {
       const result = await fetchPatients(mockTeamId);
 
       expect(mockPrisma.patient.findMany).toHaveBeenCalledWith({
-        where: { teamId: mockTeamId },
+        where: { teamId: mockTeamId, deletedAt: null },
         select: {
           id: true,
           firstName: true,
@@ -185,7 +189,7 @@ describe('Patient Model', () => {
       });
 
       expect(mockPrisma.patient.count).toHaveBeenCalledWith({
-        where: { teamId: mockTeamId },
+        where: { teamId: mockTeamId, deletedAt: null },
       });
 
       expect(result).toEqual({
@@ -204,6 +208,7 @@ describe('Patient Model', () => {
       expect(mockPrisma.patient.findMany).toHaveBeenCalledWith({
         where: {
           teamId: mockTeamId,
+          deletedAt: null,
           OR: [
             { firstName: { contains: 'John', mode: 'insensitive' } },
             { lastName: { contains: 'John', mode: 'insensitive' } },
@@ -243,7 +248,7 @@ describe('Patient Model', () => {
       });
 
       expect(mockPrisma.patient.findMany).toHaveBeenCalledWith({
-        where: { teamId: mockTeamId },
+        where: { teamId: mockTeamId, deletedAt: null },
         select: expect.any(Object),
         orderBy: { createdAt: 'desc' },
         take: 10,
@@ -251,6 +256,27 @@ describe('Patient Model', () => {
       });
 
       expect(result.hasMore).toBe(true);
+    });
+
+    it('should fetch patients including deleted when includeDeleted is true', async () => {
+      mockPrisma.patient.findMany.mockResolvedValue(mockPatientsResult);
+      mockPrisma.patient.count.mockResolvedValue(5);
+
+      const result = await fetchPatients(mockTeamId, { includeDeleted: true });
+
+      expect(mockPrisma.patient.findMany).toHaveBeenCalledWith({
+        where: { teamId: mockTeamId },
+        select: expect.any(Object),
+        orderBy: { createdAt: 'desc' },
+        take: 50,
+        skip: 0,
+      });
+
+      expect(mockPrisma.patient.count).toHaveBeenCalledWith({
+        where: { teamId: mockTeamId },
+      });
+
+      expect(result.total).toBe(5);
     });
   });
 
@@ -271,6 +297,7 @@ describe('Patient Model', () => {
         where: {
           id: mockPatientId,
           teamId: mockTeamId,
+          deletedAt: null,
         },
         include: {
           creator: {
@@ -308,9 +335,32 @@ describe('Patient Model', () => {
         where: {
           id: mockPatientId,
           teamId: 'different-team',
+          deletedAt: null,
         },
         include: expect.any(Object),
       });
+    });
+
+    it('should fetch deleted patient when includeDeleted is true', async () => {
+      const deletedPatient = {
+        ...mockPatient,
+        deletedAt: new Date(),
+        deletedBy: mockUserId,
+      };
+
+      mockPrisma.patient.findFirstOrThrow.mockResolvedValue(deletedPatient);
+
+      const result = await fetchPatientById(mockTeamId, mockPatientId, true);
+
+      expect(mockPrisma.patient.findFirstOrThrow).toHaveBeenCalledWith({
+        where: {
+          id: mockPatientId,
+          teamId: mockTeamId,
+        },
+        include: expect.any(Object),
+      });
+
+      expect(result).toEqual(deletedPatient);
     });
   });
 
@@ -411,36 +461,82 @@ describe('Patient Model', () => {
     });
   });
 
-  describe('deletePatient', () => {
-    it('should delete a patient', async () => {
-      mockPrisma.patient.delete.mockResolvedValue(mockPatient);
+  describe('softDeletePatient', () => {
+    it('should soft delete a patient with default retention', async () => {
+      const mockSoftDeletedPatient = {
+        ...mockPatient,
+        deletedAt: new Date(),
+        deletedBy: mockUserId,
+        deletionReason: 'Test deletion',
+        retentionUntil: new Date(),
+        deleter: {
+          name: 'Test User',
+          email: 'test@example.com',
+        },
+      };
 
-      const result = await deletePatient(mockTeamId, mockPatientId);
+      mockPrisma.patient.update.mockResolvedValue(mockSoftDeletedPatient);
 
-      expect(mockPrisma.patient.delete).toHaveBeenCalledWith({
+      const result = await softDeletePatient(mockTeamId, mockPatientId, {
+        deletedBy: mockUserId,
+        deletionReason: 'Test deletion',
+      });
+
+      expect(mockPrisma.patient.update).toHaveBeenCalledWith({
         where: {
           id: mockPatientId,
           teamId: mockTeamId,
+          deletedAt: null,
         },
+        data: {
+          deletedAt: expect.any(Date),
+          deletedBy: mockUserId,
+          deletionReason: 'Test deletion',
+          retentionUntil: expect.any(Date),
+        },
+        include: expect.any(Object),
       });
 
-      expect(result).toEqual(mockPatient);
+      expect(result).toEqual(mockSoftDeletedPatient);
     });
 
-    it('should enforce team scoping when deleting', async () => {
-      await deletePatient('different-team', mockPatientId);
+    it('should soft delete a patient with custom retention date', async () => {
+      const customRetentionDate = new Date('2030-01-01');
+      const mockSoftDeletedPatient = {
+        ...mockPatient,
+        deletedAt: new Date(),
+        deletedBy: mockUserId,
+        deletionReason: 'Custom deletion',
+        retentionUntil: customRetentionDate,
+      };
 
-      expect(mockPrisma.patient.delete).toHaveBeenCalledWith({
+      mockPrisma.patient.update.mockResolvedValue(mockSoftDeletedPatient);
+
+      await softDeletePatient(mockTeamId, mockPatientId, {
+        deletedBy: mockUserId,
+        deletionReason: 'Custom deletion',
+        retentionUntil: customRetentionDate,
+      });
+
+      expect(mockPrisma.patient.update).toHaveBeenCalledWith({
         where: {
           id: mockPatientId,
-          teamId: 'different-team',
+          teamId: mockTeamId,
+          deletedAt: null,
         },
+        data: {
+          deletedAt: expect.any(Date),
+          deletedBy: mockUserId,
+          deletionReason: 'Custom deletion',
+          retentionUntil: customRetentionDate,
+        },
+        include: expect.any(Object),
       });
     });
   });
 
   describe('getPatientCount', () => {
-    it('should return patient count for a team', async () => {
+    it('should return patient count for a team excluding deleted', async () => {
       mockPrisma.patient.count.mockResolvedValue(42);
 
       const result = await getPatientCount(mockTeamId);
@@ -448,10 +544,25 @@ describe('Patient Model', () => {
       expect(mockPrisma.patient.count).toHaveBeenCalledWith({
         where: {
           teamId: mockTeamId,
+          deletedAt: null,
         },
       });
 
       expect(result).toBe(42);
+    });
+
+    it('should return patient count for a team including deleted when requested', async () => {
+      mockPrisma.patient.count.mockResolvedValue(50);
+
+      const result = await getPatientCount(mockTeamId, true);
+
+      expect(mockPrisma.patient.count).toHaveBeenCalledWith({
+        where: {
+          teamId: mockTeamId,
+        },
+      });
+
+      expect(result).toBe(50);
     });
 
     it('should return zero for team with no patients', async () => {

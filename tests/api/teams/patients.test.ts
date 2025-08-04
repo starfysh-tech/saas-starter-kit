@@ -1,27 +1,29 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { Gender } from '@prisma/client';
-import patientsIndexHandler from '@/pages/api/teams/[slug]/patients/index';
-import patientDetailHandler from '@/pages/api/teams/[slug]/patients/[patientId]';
+import patientsIndexHandler from '../../../pages/api/teams/[slug]/patients/index';
+import patientDetailHandler from '../../../pages/api/teams/[slug]/patients/[patientId]';
 import {
   createPatient,
   fetchPatients,
   fetchPatientById,
   updatePatient,
-  deletePatient,
-} from '@/models/patient';
-import { getCurrentUserWithTeam, throwIfNoTeamAccess } from '@/models/team';
-import { throwIfNotAllowed } from '@/models/user';
-import { recordMetric } from '@/lib/metrics';
-import env from '@/lib/env';
-import { validateWithSchema } from '@/lib/zod';
+  softDeletePatient,
+} from '../../../models/patient';
+import { getCurrentUserWithTeam, throwIfNoTeamAccess } from '../../../models/team';
+import { throwIfNotAllowed } from '../../../models/user';
+import { recordMetric } from '../../../lib/metrics';
+import env from '../../../lib/env';
+import { validateWithSchema } from '../../../lib/zod';
+import { sendAudit } from '../../../lib/retraced';
 
 // Mock dependencies
-jest.mock('@/models/patient');
-jest.mock('@/models/team');
-jest.mock('@/models/user');
-jest.mock('@/lib/metrics');
-jest.mock('@/lib/env');
-jest.mock('@/lib/zod');
+jest.mock('../../../models/patient');
+jest.mock('../../../models/team');
+jest.mock('../../../models/user');
+jest.mock('../../../lib/metrics');
+jest.mock('../../../lib/env');
+jest.mock('../../../lib/zod');
+jest.mock('../../../lib/retraced');
 
 const mockCreatePatient = createPatient as jest.MockedFunction<
   typeof createPatient
@@ -35,8 +37,8 @@ const mockFetchPatientById = fetchPatientById as jest.MockedFunction<
 const mockUpdatePatient = updatePatient as jest.MockedFunction<
   typeof updatePatient
 >;
-const mockDeletePatient = deletePatient as jest.MockedFunction<
-  typeof deletePatient
+const mockSoftDeletePatient = softDeletePatient as jest.MockedFunction<
+  typeof softDeletePatient
 >;
 const mockGetCurrentUserWithTeam =
   getCurrentUserWithTeam as jest.MockedFunction<typeof getCurrentUserWithTeam>;
@@ -52,6 +54,7 @@ const mockRecordMetric = recordMetric as jest.MockedFunction<
 const mockValidateWithSchema = validateWithSchema as jest.MockedFunction<
   typeof validateWithSchema
 >;
+const mockSendAudit = sendAudit as jest.MockedFunction<typeof sendAudit>;
 
 // Helper function to create mock req/res
 const createMockReqRes = (method: string, query: any = {}, body: any = {}) => {
@@ -75,10 +78,19 @@ const mockUser = {
   id: 'user-123',
   name: 'Test User',
   email: 'test@example.com',
+  role: 'OWNER' as const,
+  roles: [{ teamId: 'team-123', role: 'OWNER' as const }],
   team: {
     id: 'team-123',
     name: 'Test Team',
     slug: 'test-team',
+    domain: null,
+    defaultRole: 'MEMBER' as const,
+    billingId: null,
+    billingProvider: null,
+    logo: null,
+    createdAt: new Date(),
+    updatedAt: new Date(),
   },
 };
 
@@ -93,6 +105,10 @@ const mockPatient = {
   updatedAt: new Date(),
   createdBy: 'user-123',
   updatedBy: null,
+  deletedAt: null,
+  deletedBy: null,
+  deletionReason: null,
+  retentionUntil: null,
   creator: { name: 'Test User', email: 'test@example.com' },
   updater: null,
 };
@@ -103,7 +119,7 @@ describe('Patients API', () => {
     (env as any).teamFeatures = { patients: true };
     mockThrowIfNoTeamAccess.mockResolvedValue(undefined);
     mockGetCurrentUserWithTeam.mockResolvedValue(mockUser);
-    mockThrowIfNotAllowed.mockImplementation(() => {});
+    mockThrowIfNotAllowed.mockReturnValue(true);
   });
 
   describe('GET /api/teams/[slug]/patients', () => {
@@ -139,12 +155,14 @@ describe('Patients API', () => {
       });
       expect(mockRecordMetric).toHaveBeenCalledWith('patient.fetched');
       expect(res.json).toHaveBeenCalledWith({
-        data: mockResult.patients,
-        pagination: {
-          total: 1,
-          hasMore: false,
-          limit: 10,
-          offset: 0,
+        data: {
+          patients: mockResult.patients,
+          pagination: {
+            total: 1,
+            hasMore: false,
+            limit: 10,
+            offset: 0,
+          },
         },
       });
     });
@@ -168,12 +186,14 @@ describe('Patients API', () => {
         offset: undefined,
       });
       expect(res.json).toHaveBeenCalledWith({
-        data: mockResult.patients,
-        pagination: {
-          total: 1,
-          hasMore: false,
-          limit: 50,
-          offset: 0,
+        data: {
+          patients: mockResult.patients,
+          pagination: {
+            total: 1,
+            hasMore: false,
+            limit: 50,
+            offset: 0,
+          },
         },
       });
     });
@@ -244,6 +264,12 @@ describe('Patients API', () => {
         gender: Gender.MALE,
         createdBy: 'user-123',
       });
+      expect(mockSendAudit).toHaveBeenCalledWith({
+        action: 'patient.create',
+        crud: 'c',
+        user: mockUser,
+        team: mockUser.team,
+      });
       expect(mockRecordMetric).toHaveBeenCalledWith('patient.created');
       expect(res.status).toHaveBeenCalledWith(201);
       expect(res.json).toHaveBeenCalledWith({
@@ -288,7 +314,7 @@ describe('Patient Detail API', () => {
     (env as any).teamFeatures = { patients: true };
     mockThrowIfNoTeamAccess.mockResolvedValue(undefined);
     mockGetCurrentUserWithTeam.mockResolvedValue(mockUser);
-    mockThrowIfNotAllowed.mockImplementation(() => {});
+    mockThrowIfNotAllowed.mockReturnValue(true);
   });
 
   describe('GET /api/teams/[slug]/patients/[patientId]', () => {
@@ -316,6 +342,12 @@ describe('Patient Detail API', () => {
         'team-123',
         'patient-123'
       );
+      expect(mockSendAudit).toHaveBeenCalledWith({
+        action: 'patient.view',
+        crud: 'r',
+        user: mockUser,
+        team: mockUser.team,
+      });
       expect(mockRecordMetric).toHaveBeenCalledWith('patient.fetched');
       expect(res.json).toHaveBeenCalledWith({ data: mockPatient });
     });
@@ -382,6 +414,12 @@ describe('Patient Detail API', () => {
           updatedBy: 'user-123',
         }
       );
+      expect(mockSendAudit).toHaveBeenCalledWith({
+        action: 'patient.update',
+        crud: 'u',
+        user: mockUser,
+        team: mockUser.team,
+      });
       expect(mockRecordMetric).toHaveBeenCalledWith('patient.updated');
       expect(res.json).toHaveBeenCalledWith({ data: updatedPatient });
     });
@@ -417,7 +455,13 @@ describe('Patient Detail API', () => {
 
       mockValidateWithSchema.mockReturnValue({ patientId: 'patient-123' });
       mockFetchPatientById.mockResolvedValue(mockPatient);
-      mockDeletePatient.mockResolvedValue(mockPatient);
+      mockSoftDeletePatient.mockResolvedValue({
+        ...mockPatient,
+        deletedAt: new Date(),
+        deletedBy: 'user-123',
+        deletionReason: 'Patient record soft deleted',
+        deleter: { name: 'Test User', email: 'test@example.com' },
+      });
 
       await patientDetailHandler(req, res);
 
@@ -430,7 +474,16 @@ describe('Patient Detail API', () => {
         'team-123',
         'patient-123'
       );
-      expect(mockDeletePatient).toHaveBeenCalledWith('team-123', 'patient-123');
+      expect(mockSoftDeletePatient).toHaveBeenCalledWith('team-123', 'patient-123', {
+        deletedBy: 'user-123',
+        deletionReason: 'Patient record soft deleted',
+      });
+      expect(mockSendAudit).toHaveBeenCalledWith({
+        action: 'patient.soft_delete',
+        crud: 'd',
+        user: mockUser,
+        team: mockUser.team,
+      });
       expect(mockRecordMetric).toHaveBeenCalledWith('patient.removed');
       expect(res.status).toHaveBeenCalledWith(204);
       expect(res.end).toHaveBeenCalled();

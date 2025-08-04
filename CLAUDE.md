@@ -47,6 +47,7 @@ This is a multi-tenant SaaS starter kit built with Next.js, featuring:
 ### Key Features & Integrations
 
 • Multi-tenant team management system
+• Patient management system with HIPAA-aware design
 • SAML SSO via BoxyHQ Jackson
 • Directory Sync (SCIM)
 • Webhooks via Svix
@@ -62,7 +63,7 @@ This is a multi-tenant SaaS starter kit built with Next.js, featuring:
 
 ### Directory Structure
 
-• `/components/` - React components organized by feature (auth, team, billing, etc.)
+• `/components/` - React components organized by feature (auth, team, billing, patient, etc.)
 • `/pages/` - Next.js pages and API routes
 • `/lib/` - Core utilities, configurations, and services
 • `/models/` - Database model functions
@@ -115,6 +116,7 @@ Key entities in Prisma schema:
 • User - Individual users
 • Team - Tenant organizations
 • TeamMember - User-team relationships with roles
+• Patient - Team-scoped patient records with audit tracking
 • Account - OAuth account linking
 • Session - User sessions
 • ApiKey - Team-scoped API keys
@@ -122,8 +124,20 @@ Key entities in Prisma schema:
 ### API Structure
 
 • `/api/teams/[slug]/` - Team-scoped endpoints
+• `/api/teams/[slug]/patients/` - Patient CRUD operations
 • `/api/auth/` - Authentication endpoints
 • `/api/webhooks/` - External webhook receivers
+
+## Patient Management System
+
+• **Feature Flag**: `FEATURE_TEAM_PATIENTS` in env variables
+• **Components**: `/components/patient/` directory with CRUD forms and list views
+• **API Routes**: `/pages/api/teams/[slug]/patients/` for CRUD operations
+• **Data Model**: Patient model with team scoping and HIPAA-compliant soft delete
+• **Permissions**: `team_patient` resource in permission system
+• **HIPAA Compliance**: 7-year retention period, audit logging, soft delete architecture
+• **Deletion Behavior**: Archive/unarchive instead of permanent deletion
+• **Audit Trail**: Comprehensive logging for all patient operations via Retraced
 
 ## Development Notes
 

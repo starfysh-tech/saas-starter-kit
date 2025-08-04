@@ -3,8 +3,8 @@ import { GetServerSidePropsContext } from 'next';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import env from '@/lib/env';
 
-const TeamPatients = ({ teamFeatures }) => {
-  return <PatientsContainer teamFeatures={teamFeatures} />;
+const TeamPatients = () => {
+  return <PatientsContainer />;
 };
 
 export async function getServerSideProps({

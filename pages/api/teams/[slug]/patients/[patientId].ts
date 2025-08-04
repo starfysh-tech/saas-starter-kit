@@ -1,8 +1,9 @@
-import { fetchPatientById, updatePatient, deletePatient } from 'models/patient';
+import { fetchPatientById, updatePatient, softDeletePatient } from 'models/patient';
 import { getCurrentUserWithTeam, throwIfNoTeamAccess } from 'models/team';
 import { throwIfNotAllowed } from 'models/user';
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { recordMetric } from '@/lib/metrics';
+import { sendAudit } from '@/lib/retraced';
 import env from '@/lib/env';
 import { ApiError } from '@/lib/errors';
 import {
@@ -58,6 +59,13 @@ const handleGET = async (req: NextApiRequest, res: NextApiResponse) => {
   try {
     const patient = await fetchPatientById(user.team.id, patientId);
 
+    sendAudit({
+      action: 'patient.view',
+      crud: 'r',
+      user,
+      team: user.team,
+    });
+
     recordMetric('patient.fetched');
 
     res.json({ data: patient });
@@ -93,6 +101,13 @@ const handlePUT = async (req: NextApiRequest, res: NextApiResponse) => {
     updatedBy: user.id,
   });
 
+  sendAudit({
+    action: 'patient.update',
+    crud: 'u',
+    user,
+    team: user.team,
+  });
+
   recordMetric('patient.updated');
 
   res.json({ data: patient });
@@ -116,7 +131,19 @@ const handleDELETE = async (req: NextApiRequest, res: NextApiResponse) => {
     throw error;
   }
 
-  await deletePatient(user.team.id, patientId);
+  const deletionReason = req.body?.deletionReason || 'Patient record soft deleted';
+  
+  await softDeletePatient(user.team.id, patientId, {
+    deletedBy: user.id,
+    deletionReason,
+  });
+
+  sendAudit({
+    action: 'patient.soft_delete',
+    crud: 'd',
+    user,
+    team: user.team,
+  });
 
   recordMetric('patient.removed');
 

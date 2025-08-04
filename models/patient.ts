@@ -22,6 +22,13 @@ interface FetchPatientsOptions {
   search?: string;
   limit?: number;
   offset?: number;
+  includeDeleted?: boolean;
+}
+
+interface SoftDeletePatientParams {
+  deletedBy: string;
+  deletionReason?: string;
+  retentionUntil?: Date;
 }
 
 export const createPatient = async (params: CreatePatientParams) => {
@@ -51,10 +58,11 @@ export const fetchPatients = async (
   teamId: string,
   options?: FetchPatientsOptions
 ) => {
-  const { search, limit = 50, offset = 0 } = options || {};
+  const { search, limit = 50, offset = 0, includeDeleted = false } = options || {};
 
   const where = {
     teamId,
+    ...(!includeDeleted && { deletedAt: null }),
     ...(search && {
       OR: [
         { firstName: { contains: search, mode: 'insensitive' as const } },
@@ -98,11 +106,12 @@ export const fetchPatients = async (
   };
 };
 
-export const fetchPatientById = async (teamId: string, patientId: string) => {
+export const fetchPatientById = async (teamId: string, patientId: string, includeDeleted = false) => {
   return await prisma.patient.findFirstOrThrow({
     where: {
       id: patientId,
       teamId,
+      ...(!includeDeleted && { deletedAt: null }),
     },
     include: {
       creator: {
@@ -158,7 +167,80 @@ export const updatePatient = async (
   });
 };
 
-export const deletePatient = async (teamId: string, patientId: string) => {
+export const softDeletePatient = async (
+  teamId: string,
+  patientId: string,
+  params: SoftDeletePatientParams
+) => {
+  const { deletedBy, deletionReason, retentionUntil } = params;
+  
+  const defaultRetentionYears = 7;
+  const calculatedRetentionUntil = retentionUntil || 
+    new Date(Date.now() + defaultRetentionYears * 365 * 24 * 60 * 60 * 1000);
+
+  return await prisma.patient.update({
+    where: {
+      id: patientId,
+      teamId,
+      deletedAt: null,
+    },
+    data: {
+      deletedAt: new Date(),
+      deletedBy,
+      deletionReason,
+      retentionUntil: calculatedRetentionUntil,
+      updatedAt: new Date(),
+      updatedBy: deletedBy,
+    },
+    include: {
+      creator: {
+        select: {
+          name: true,
+          email: true,
+        },
+      },
+      deleter: {
+        select: {
+          name: true,
+          email: true,
+        },
+      },
+    },
+  });
+};
+
+export const canHardDeletePatient = async (
+  teamId: string,
+  patientId: string
+): Promise<boolean> => {
+  const patient = await prisma.patient.findFirst({
+    where: {
+      id: patientId,
+      teamId,
+      deletedAt: { not: null },
+    },
+    select: {
+      retentionUntil: true,
+    },
+  });
+
+  if (!patient || !patient.retentionUntil) {
+    return false;
+  }
+
+  return new Date() >= patient.retentionUntil;
+};
+
+export const hardDeletePatient = async (
+  teamId: string,
+  patientId: string
+) => {
+  const canDelete = await canHardDeletePatient(teamId, patientId);
+  
+  if (!canDelete) {
+    throw new Error('Patient retention period has not expired. Cannot permanently delete.');
+  }
+
   return await prisma.patient.delete({
     where: {
       id: patientId,
@@ -168,10 +250,11 @@ export const deletePatient = async (teamId: string, patientId: string) => {
 };
 
 // Get patient count for a team (for dashboard stats)
-export const getPatientCount = async (teamId: string) => {
+export const getPatientCount = async (teamId: string, includeDeleted = false) => {
   return await prisma.patient.count({
     where: {
       teamId,
+      ...(!includeDeleted && { deletedAt: null }),
     },
   });
 };

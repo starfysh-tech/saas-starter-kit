@@ -76,6 +76,7 @@ model User {
   invitations     Invitation[]
   createdPatients Patient[]    @relation("PatientCreator")
   updatedPatients Patient[]    @relation("PatientUpdater")
+  deletedPatients Patient[]    @relation("PatientDeleter")
 }
 
 model Team {
@@ -157,23 +158,31 @@ model ApiKey {
 }
 
 model Patient {
-  id        String   @id @default(uuid())
-  teamId    String
-  firstName String
-  lastName  String
-  mobile    String?
-  gender    Gender?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now())
-  createdBy String
-  updatedBy String?
+  id              String   @id @default(uuid())
+  teamId          String
+  firstName       String
+  lastName        String
+  mobile          String?
+  gender          Gender?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @default(now())
+  createdBy       String
+  updatedBy       String?
+  
+  // HIPAA-compliant soft delete fields
+  deletedAt       DateTime?
+  deletedBy       String?
+  deletionReason  String?
+  retentionUntil  DateTime?
 
   team    Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
   creator User @relation("PatientCreator", fields: [createdBy], references: [id])
   updater User? @relation("PatientUpdater", fields: [updatedBy], references: [id])
+  deleter User? @relation("PatientDeleter", fields: [deletedBy], references: [id])
 
   @@index([teamId])
   @@index([teamId, createdAt])
+  @@index([teamId, deletedAt])
 }
 
 model Subscription {

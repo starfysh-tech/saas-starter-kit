@@ -734,6 +734,248 @@ Delete a webhook endpoint.
 
 ---
 
+## Patient Management
+
+### List Patients
+
+Get all patients for a team with pagination and search capabilities.
+
+**Endpoint**: `GET /api/teams/{slug}/patients`  
+**Authentication**: Session or API Key  
+**Permissions**: Team member with `team_patient` read access
+
+**Parameters**:
+
+- `slug` (path) - Team slug identifier
+- `search` (query) - Search term for patient names or mobile numbers
+- `limit` (query) - Number of results per page (default: 50)
+- `offset` (query) - Starting offset for pagination (default: 0)
+
+**Response**: `200 OK`
+
+```json
+{
+  "data": {
+    "patients": [
+      {
+        "id": "clm123pat",
+        "firstName": "John",
+        "lastName": "Doe",
+        "mobile": "+1234567890",
+        "gender": "MALE",
+        "createdAt": "2024-01-01T00:00:00.000Z",
+        "updatedAt": "2024-01-01T00:00:00.000Z",
+        "creator": {
+          "name": "Dr. Smith",
+          "email": "smith@example.com"
+        }
+      }
+    ],
+    "pagination": {
+      "total": 25,
+      "hasMore": false,
+      "limit": 50,
+      "offset": 0
+    }
+  }
+}
+```
+
+**Example**:
+
+```bash
+curl -X GET "http://localhost:4002/api/teams/acme-corp/patients?search=john&limit=10" \
+  -H "Authorization: Bearer sk_test_your_api_key_here"
+```
+
+### Get Patient Details
+
+Get detailed information for a specific patient.
+
+**Endpoint**: `GET /api/teams/{slug}/patients/{patientId}`  
+**Authentication**: Session or API Key  
+**Permissions**: Team member with `team_patient` read access
+
+**Parameters**:
+
+- `slug` (path) - Team slug identifier
+- `patientId` (path) - Patient UUID
+
+**Response**: `200 OK`
+
+```json
+{
+  "data": {
+    "id": "clm123pat",
+    "firstName": "John",
+    "lastName": "Doe",
+    "mobile": "+1234567890",
+    "gender": "MALE",
+    "createdAt": "2024-01-01T00:00:00.000Z",
+    "updatedAt": "2024-01-01T00:00:00.000Z",
+    "creator": {
+      "name": "Dr. Smith",
+      "email": "smith@example.com"
+    },
+    "updater": {
+      "name": "Dr. Johnson",
+      "email": "johnson@example.com"
+    }
+  }
+}
+```
+
+### Create Patient
+
+Create a new patient record for the team.
+
+**Endpoint**: `POST /api/teams/{slug}/patients`  
+**Authentication**: Session or API Key  
+**Permissions**: Team Admin or Owner with `team_patient` create access
+
+**Parameters**:
+
+- `slug` (path) - Team slug identifier
+
+**Request Body**:
+
+```json
+{
+  "firstName": "string (required, max 100 chars)",
+  "lastName": "string (required, max 100 chars)",
+  "mobile": "string (optional)",
+  "gender": "MALE|FEMALE|OTHER|PREFER_NOT_TO_SAY (optional)"
+}
+```
+
+**Response**: `201 Created`
+
+```json
+{
+  "data": {
+    "patient": {
+      "id": "clm123pat",
+      "firstName": "John",
+      "lastName": "Doe",
+      "mobile": "+1234567890",
+      "gender": "MALE",
+      "createdAt": "2024-01-01T00:00:00.000Z",
+      "updatedAt": "2024-01-01T00:00:00.000Z",
+      "creator": {
+        "name": "Dr. Smith",
+        "email": "smith@example.com"
+      }
+    }
+  }
+}
+```
+
+**Example**:
+
+```bash
+curl -X POST http://localhost:4002/api/teams/acme-corp/patients \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer sk_test_your_api_key_here" \
+  -d '{
+    "firstName": "Jane",
+    "lastName": "Smith",
+    "mobile": "+1987654321",
+    "gender": "FEMALE"
+  }'
+```
+
+### Update Patient
+
+Update an existing patient record.
+
+**Endpoint**: `PUT /api/teams/{slug}/patients/{patientId}`  
+**Authentication**: Session or API Key  
+**Permissions**: Team Admin or Owner with `team_patient` update access
+
+**Parameters**:
+
+- `slug` (path) - Team slug identifier
+- `patientId` (path) - Patient UUID
+
+**Request Body**:
+
+```json
+{
+  "firstName": "string (optional, max 100 chars)",
+  "lastName": "string (optional, max 100 chars)",
+  "mobile": "string (optional)",
+  "gender": "MALE|FEMALE|OTHER|PREFER_NOT_TO_SAY (optional)"
+}
+```
+
+**Response**: `200 OK`
+
+```json
+{
+  "data": {
+    "id": "clm123pat",
+    "firstName": "John",
+    "lastName": "Doe",
+    "mobile": "+1234567890",
+    "gender": "MALE",
+    "createdAt": "2024-01-01T00:00:00.000Z",
+    "updatedAt": "2024-01-01T12:00:00.000Z",
+    "creator": {
+      "name": "Dr. Smith",
+      "email": "smith@example.com"
+    },
+    "updater": {
+      "name": "Dr. Johnson",
+      "email": "johnson@example.com"
+    }
+  }
+}
+```
+
+### Archive Patient (Soft Delete)
+
+Archive a patient record using HIPAA-compliant soft deletion. The patient record is retained for 7 years and marked as deleted.
+
+**Endpoint**: `DELETE /api/teams/{slug}/patients/{patientId}`  
+**Authentication**: Session or API Key  
+**Permissions**: Team Admin or Owner with `team_patient` delete access
+
+**Parameters**:
+
+- `slug` (path) - Team slug identifier
+- `patientId` (path) - Patient UUID
+
+**Request Body**:
+
+```json
+{
+  "deletionReason": "string (optional, reason for archiving)"
+}
+```
+
+**Response**: `204 No Content`
+
+**Example**:
+
+```bash
+curl -X DELETE http://localhost:4002/api/teams/acme-corp/patients/clm123pat \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer sk_test_your_api_key_here" \
+  -d '{
+    "deletionReason": "Patient requested data removal"
+  }'
+```
+
+**Notes**:
+
+- **HIPAA Compliance**: Patient records are soft deleted and retained for 7 years
+- **Audit Trail**: All patient operations are logged via Retraced for compliance
+- **Data Retention**: Archived patients are not returned in list queries by default
+- **Permanent Deletion**: Only occurs automatically after retention period expires
+- **Access Control**: Patient data access is strictly controlled via team permissions
+
+---
+
 ## Payments & Billing
 
 ### Get Products and Subscriptions
