@@ -262,3 +262,47 @@ export const memberId = z
     maxLengthPolicies.memberId,
     `Member id should be at most ${maxLengthPolicies.memberId} characters`
   );
+
+// Patient validation primitives
+export const patientName = z
+  .string({
+    required_error: 'Patient name is required',
+    invalid_type_error: 'Patient name must be a string',
+  })
+  .min(1, 'Patient name is required')
+  .max(50, 'Patient name should have at most 50 characters');
+
+export const mobile = z
+  .string({
+    required_error: 'Mobile number is required',
+    invalid_type_error: 'Mobile number must be a string',
+  })
+  .min(1, 'Mobile number is required')
+  .transform((phone) => {
+    // Strip all non-digits
+    const digits = phone.replace(/\D/g, '');
+    // Ensure it's a valid US phone number (10 digits)
+    if (digits.length !== 10) {
+      throw new z.ZodError([
+        {
+          code: 'custom',
+          message: 'Mobile number must be 10 digits',
+          path: [],
+        },
+      ]);
+    }
+    // Format as (123) 456-7890
+    return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
+  });
+
+export const gender = z.enum(['MALE', 'FEMALE', 'OTHER', 'PREFER_NOT_TO_SAY'], {
+  required_error: 'Gender is required',
+  invalid_type_error: 'Gender must be a valid option',
+});
+
+export const patientId = z
+  .string({
+    required_error: 'Patient ID is required',
+    invalid_type_error: 'Patient ID must be a string',
+  })
+  .min(1, 'Patient ID is required');

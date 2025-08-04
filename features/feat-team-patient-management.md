@@ -347,17 +347,17 @@ _Ready to generate detailed sub-tasks? Respond with 'Go' to proceed._
   - [x] 1.1 Add Patient Model to Prisma Schema
   - [x] 1.2 Generate and Apply Database Migration
   - [x] 1.3 Create Patient Model Functions
-- [ ] Task 2: Permission System Integration
-  - [ ] 2.1 Add Patient Resource to Permission System
-- [ ] Task 3: API Endpoints Implementation
-  - [ ] 3.1 Create Base Patients API Endpoint
-  - [ ] 3.2 Create Individual Patient API Endpoint
-- [ ] Task 4: Data Validation Schemas
-  - [ ] 4.1 Add Patient Validation Schemas
-- [ ] Task 5: UI Backend Integration
-  - [ ] 5.1 Replace Placeholder Data with API Integration
-  - [ ] 5.2 Implement Patient CRUD Operations in UI
-  - [ ] 5.3 Update Navigation and Feature Integration
+- [x] Task 2: Permission System Integration
+  - [x] 2.1 Add Patient Resource to Permission System
+- [x] Task 3: API Endpoints Implementation
+  - [x] 3.1 Create Base Patients API Endpoint
+  - [x] 3.2 Create Individual Patient API Endpoint
+- [x] Task 4: Data Validation Schemas
+  - [x] 4.1 Add Patient Validation Schemas
+- [x] Task 5: UI Backend Integration
+  - [x] 5.1 Replace Placeholder Data with API Integration
+  - [x] 5.2 Implement Patient CRUD Operations in UI
+  - [x] 5.3 Update Navigation and Feature Integration
 - [ ] Task 6: Testing Implementation
   - [ ] 6.1 Create Model Tests
   - [ ] 6.2 Create API Tests

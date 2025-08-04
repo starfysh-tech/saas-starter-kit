@@ -25,6 +25,10 @@ import {
   name,
   image,
   eventTypes,
+  patientName,
+  mobile,
+  gender,
+  patientId,
 } from './primitives';
 
 export const createApiKeySchema = z.object({
@@ -172,3 +176,26 @@ export const ssoVerifySchema = z
   .refine((data) => data.email || data.slug, {
     message: 'At least one of email or slug is required',
   });
+
+// Patient schemas
+export const createPatientSchema = z.object({
+  firstName: patientName,
+  lastName: patientName,
+  mobile,
+  gender,
+});
+
+export const updatePatientSchema = z.object({
+  firstName: patientName.optional(),
+  lastName: patientName.optional(),
+  mobile: mobile.optional(),
+  gender: gender.optional(),
+});
+
+export const deletePatientSchema = z.object({
+  patientId,
+});
+
+export const getPatientSchema = z.object({
+  patientId,
+});

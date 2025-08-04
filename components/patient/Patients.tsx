@@ -1,0 +1,202 @@
+/* eslint-disable i18next/no-literal-string */
+import { EmptyState, WithLoadingAndError } from '@/components/shared';
+import ConfirmationDialog from '@/components/shared/ConfirmationDialog';
+import type { Patient, Team } from '@prisma/client';
+import { useTranslation } from 'next-i18next';
+import { useState } from 'react';
+import { Button } from 'react-daisyui';
+import { toast } from 'react-hot-toast';
+import type { ApiResponse } from 'types';
+import NewPatient from './NewPatient';
+import EditPatient from './EditPatient';
+import usePatients from 'hooks/usePatients';
+import { Table } from '@/components/shared/table/Table';
+
+interface PatientsProps {
+  team: Team;
+}
+
+const Patients = ({ team }: PatientsProps) => {
+  const { t } = useTranslation('common');
+  const { data, isLoading, error, mutate } = usePatients(team.slug);
+  const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
+  const [createModalVisible, setCreateModalVisible] = useState(false);
+  const [editModalVisible, setEditModalVisible] = useState(false);
+  const [confirmationDialogVisible, setConfirmationDialogVisible] =
+    useState(false);
+
+  // Delete Patient
+  const deletePatient = async (patient: Patient | null) => {
+    if (!patient) {
+      return;
+    }
+
+    const response = await fetch(
+      `/api/teams/${team.slug}/patients/${patient.id}`,
+      {
+        method: 'DELETE',
+      }
+    );
+
+    setSelectedPatient(null);
+    setConfirmationDialogVisible(false);
+
+    if (!response.ok) {
+      const { error } = (await response.json()) as ApiResponse;
+      toast.error(error.message);
+      return;
+    }
+
+    mutate();
+    toast.success(t('patient-deleted'));
+  };
+
+  const patients = data?.data?.patients ?? [];
+  const totalPatients = data?.data?.pagination?.total ?? 0;
+  const activePatients = patients.length; // For now, all patients are considered active
+
+  const handleEditPatient = (patient: Patient) => {
+    setSelectedPatient(patient);
+    setEditModalVisible(true);
+  };
+
+  const handleDeletePatient = (patient: Patient) => {
+    setSelectedPatient(patient);
+    setConfirmationDialogVisible(true);
+  };
+
+  return (
+    <WithLoadingAndError isLoading={isLoading} error={error}>
+      <div className="space-y-6">
+        {/* Patients Header */}
+        <div className="bg-white shadow rounded-lg p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">
+                Patients Management
+              </h3>
+              <p className="text-gray-600">
+                Manage and view patients assigned to your team.
+              </p>
+            </div>
+            <Button
+              color="primary"
+              size="md"
+              onClick={() => setCreateModalVisible(true)}
+            >
+              Add New Patient
+            </Button>
+          </div>
+        </div>
+
+        {/* Patients Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="bg-white shadow rounded-lg p-4">
+            <div className="text-2xl font-bold text-blue-600">
+              {totalPatients}
+            </div>
+            <div className="text-sm text-gray-500">Total Patients</div>
+          </div>
+          <div className="bg-white shadow rounded-lg p-4">
+            <div className="text-2xl font-bold text-green-600">
+              {activePatients}
+            </div>
+            <div className="text-sm text-gray-500">Active Patients</div>
+          </div>
+        </div>
+
+        {/* Patients List */}
+        {patients.length === 0 ? (
+          <EmptyState
+            title="No patients found"
+            description="Add patients to get started with patient management."
+          />
+        ) : (
+          <>
+            <div className="bg-white shadow rounded-lg overflow-hidden">
+              <div className="px-6 py-4 border-b border-gray-200">
+                <h4 className="text-lg font-medium text-gray-900">
+                  Patient List
+                </h4>
+                <p className="text-sm text-gray-600 mt-1">
+                  {totalPatients} patients total
+                </p>
+              </div>
+
+              <Table
+                cols={['Name', 'Mobile', 'Gender', 'Created', 'Actions']}
+                body={patients.map((patient) => {
+                  return {
+                    id: patient.id,
+                    cells: [
+                      {
+                        wrap: true,
+                        text: `${patient.firstName} ${patient.lastName}`,
+                      },
+                      {
+                        wrap: true,
+                        text: patient.mobile || 'N/A',
+                      },
+                      {
+                        text: patient.gender
+                          ? patient.gender.replace('_', ' ')
+                          : 'N/A',
+                      },
+                      {
+                        wrap: true,
+                        text: new Date(patient.createdAt).toLocaleDateString(),
+                      },
+                      {
+                        buttons: [
+                          {
+                            color: 'primary',
+                            text: 'Edit',
+                            onClick: () => handleEditPatient(patient),
+                          },
+                          {
+                            color: 'error',
+                            text: 'Remove',
+                            onClick: () => handleDeletePatient(patient),
+                          },
+                        ],
+                      },
+                    ],
+                  };
+                })}
+              />
+            </div>
+
+            <ConfirmationDialog
+              title="Remove Patient"
+              visible={confirmationDialogVisible}
+              onConfirm={() => deletePatient(selectedPatient)}
+              onCancel={() => setConfirmationDialogVisible(false)}
+              cancelText="Cancel"
+              confirmText="Remove Patient"
+            >
+              Are you sure you want to remove this patient? This action cannot
+              be undone.
+            </ConfirmationDialog>
+          </>
+        )}
+
+        <NewPatient
+          team={team}
+          createModalVisible={createModalVisible}
+          setCreateModalVisible={setCreateModalVisible}
+          onPatientCreated={mutate}
+        />
+
+        <EditPatient
+          team={team}
+          patient={selectedPatient}
+          editModalVisible={editModalVisible}
+          setEditModalVisible={setEditModalVisible}
+          onPatientUpdated={mutate}
+        />
+      </div>
+    </WithLoadingAndError>
+  );
+};
+
+export default Patients;
