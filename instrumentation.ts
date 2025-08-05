@@ -9,10 +9,10 @@ export function register() {
   ) {
     Sentry.init({
       dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
-      tracesSampleRate: parseFloat(
-        process.env.NEXT_PUBLIC_SENTRY_TRACE_SAMPLE_RATE ?? '0.0'
-      ),
-      debug: false,
+      tracesSampleRate: process.env.NODE_ENV === 'production' 
+        ? 0.1 
+        : parseFloat(process.env.NEXT_PUBLIC_SENTRY_TRACE_SAMPLE_RATE ?? '1.0'),
+      debug: process.env.NODE_ENV === 'development',
       _experiments: {
         enableLogs: true,
       },
@@ -25,7 +25,4 @@ export function register() {
   }
 }
 
-export async function onRequestError(err: Error) {
-  // TODO: Fix Sentry integration - temporarily disabled due to type mismatch
-  console.error('Request error:', err);
-}
+export const onRequestError = Sentry.captureRequestError;

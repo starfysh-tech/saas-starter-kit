@@ -60,8 +60,13 @@ const nextConfig = {
 // Additional config options for the Sentry webpack plugin.
 // For all available options: https://github.com/getsentry/sentry-webpack-plugin#options.
 const sentryWebpackPluginOptions = {
-  silent: true,
+  org: process.env.SENTRY_ORG,
+  project: process.env.SENTRY_PROJECT,
+  authToken: process.env.SENTRY_AUTH_TOKEN,
+  silent: !process.env.CI,
   hideSourceMaps: true,
+  widenClientFileUpload: true,
+  disableLogger: true,
 };
 
 module.exports = withSentryConfig(nextConfig, sentryWebpackPluginOptions);
