@@ -31,6 +31,7 @@ Current patient data collection uses a hardcoded form with basic fields (firstNa
 1. **The system must render patient forms dynamically** based on JSON template configurations stored in the database.
 
 2. **The system must support complex field types** including:
+
    - Cascading select fields (two-step dependent dropdowns)
    - Checkbox groups with severity rating scales
    - Date pickers with custom validation and display formats
@@ -70,6 +71,7 @@ Current patient data collection uses a hardcoded form with basic fields (firstNa
 Complex field types (cascading, severity scales) are essential for clinical workflows and cannot be simplified without losing core functionality. However, we avoid form builder UI complexity by using manual JSON management.
 
 **Simpler Alternatives Considered:**
+
 - Static form variations: Too rigid for diverse clinical needs
 - Simple field types only: Insufficient for clinical data relationships
 - Separate data tables per form: Overly complex for v1 scope

@@ -5,9 +5,9 @@ import type { Patient, Team } from '@prisma/client';
 import { useState } from 'react';
 import { Button } from 'react-daisyui';
 import { toast } from 'react-hot-toast';
+import { useRouter } from 'next/router';
 import type { ApiResponse } from 'types';
 import NewPatient from './NewPatient';
-import EditPatient from './EditPatient';
 import usePatients from 'hooks/usePatients';
 import { Table } from '@/components/shared/table/Table';
 
@@ -16,10 +16,10 @@ interface PatientsProps {
 }
 
 const Patients = ({ team }: PatientsProps) => {
+  const router = useRouter();
   const { data, isLoading, error, mutate } = usePatients(team.slug);
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
   const [createModalVisible, setCreateModalVisible] = useState(false);
-  const [editModalVisible, setEditModalVisible] = useState(false);
   const [confirmationDialogVisible, setConfirmationDialogVisible] =
     useState(false);
 
@@ -59,9 +59,8 @@ const Patients = ({ team }: PatientsProps) => {
   const totalPatients = data?.data?.pagination?.total ?? 0;
   const activePatients = patients.length; // For now, all patients are considered active
 
-  const handleEditPatient = (patient: Patient) => {
-    setSelectedPatient(patient);
-    setEditModalVisible(true);
+  const handleViewPatientDetails = (patient: Patient) => {
+    router.push(`/teams/${team.slug}/patients/${patient.id}`);
   };
 
   const handleArchivePatient = (patient: Patient) => {
@@ -154,8 +153,8 @@ const Patients = ({ team }: PatientsProps) => {
                         buttons: [
                           {
                             color: 'primary',
-                            text: 'Edit',
-                            onClick: () => handleEditPatient(patient),
+                            text: 'View Details',
+                            onClick: () => handleViewPatientDetails(patient),
                           },
                           {
                             color: 'warning',
@@ -178,7 +177,9 @@ const Patients = ({ team }: PatientsProps) => {
               cancelText="Cancel"
               confirmText="Archive Patient"
             >
-              Are you sure you want to archive this patient record? The record will be preserved for compliance purposes but hidden from active patient lists. This action can be audited but not easily reversed.
+              Are you sure you want to archive this patient record? The record
+              will be preserved for compliance purposes but hidden from active
+              patient lists. This action can be audited but not easily reversed.
             </ConfirmationDialog>
           </>
         )}
@@ -188,14 +189,6 @@ const Patients = ({ team }: PatientsProps) => {
           createModalVisible={createModalVisible}
           setCreateModalVisible={setCreateModalVisible}
           onPatientCreated={mutate}
-        />
-
-        <EditPatient
-          team={team}
-          patient={selectedPatient}
-          editModalVisible={editModalVisible}
-          setEditModalVisible={setEditModalVisible}
-          onPatientUpdated={mutate}
         />
       </div>
     </WithLoadingAndError>

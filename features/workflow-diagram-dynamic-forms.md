@@ -1,6 +1,7 @@
 # End-to-End Workflow Diagram: Dynamic Form Templates
 
 ## Overview
+
 This diagram shows the complete workflow from template creation to data analysis, illustrating how different roles interact with the system and how data flows through each stage.
 
 ## Complete Workflow: From Template Creation to Analytics
@@ -339,21 +340,25 @@ This diagram shows the complete workflow from template creation to data analysis
 ## Key Workflow Benefits
 
 ### 1. Role Separation
+
 - **mQOL Team:** Template creation and management
 - **Clinical Staff:** Patient data entry using dynamic forms
 - **Analysts:** Direct SQL access to structured data
 
 ### 2. Version Control
+
 - Templates are versioned through FormAssignment records
 - Patient data remains tied to specific template versions
 - Historical data integrity maintained across template updates
 
 ### 3. Scalability
+
 - New templates can be created without code changes
 - Teams can be assigned different forms based on their needs
 - Analytics queries work across all template types
 
 ### 4. Data Integrity
+
 - Strong typing for core fields (name, contact info)
 - Flexible EAV storage for disease-specific fields
 - Validation at both template and database levels

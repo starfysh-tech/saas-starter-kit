@@ -26,7 +26,10 @@ type EventType =
   | 'patient.update'
   | 'patient.soft_delete'
   | 'patient.hard_delete'
-  | 'patient.view';
+  | 'patient.view'
+  | 'patient_baseline.created'
+  | 'patient_baseline.updated'
+  | 'patient_baseline.archived';
 
 type Request = {
   action: EventType;

@@ -10,7 +10,11 @@ import { recordMetric } from '@/lib/metrics';
 import { sendAudit } from '@/lib/retraced';
 import env from '@/lib/env';
 import { ApiError } from '@/lib/errors';
-import { createPatientBaselineSchema, validateWithSchema } from '@/lib/zod';
+import {
+  createPatientBaselineSchema,
+  baselineAssessmentDataSchema,
+  validateWithSchema,
+} from '@/lib/zod';
 
 export default async function handler(
   req: NextApiRequest,
@@ -71,7 +75,7 @@ const handleGET = async (req: NextApiRequest, res: NextApiResponse) => {
 
   recordMetric('patient_baseline.fetched');
 
-  res.status(200).json(result);
+  res.status(200).json({ data: result, error: null });
 };
 
 // Create new patient baseline
@@ -87,19 +91,61 @@ const handlePOST = async (req: NextApiRequest, res: NextApiResponse) => {
   }
 
   // Verify patient exists and belongs to team
-  const patient = await fetchPatientById(user.team.id, patientId);
+  await fetchPatientById(user.team.id, patientId);
 
-  const validatedData = validateWithSchema(
-    createPatientBaselineSchema,
-    req.body
-  );
+  // Check if the request contains new clinical data structure
+  const has_clinical_data =
+    req.body.symptoms ||
+    req.body.treatments ||
+    req.body.clinical_measurements ||
+    req.body.performance_status;
 
-  const baseline = await createPatientBaseline({
-    teamId: user.team.id,
-    patientId,
-    createdBy: user.id,
-    ...validatedData,
-  });
+  let baseline;
+
+  if (has_clinical_data) {
+    // Validate new clinical assessment data
+    const validated_clinical_data = validateWithSchema(
+      baselineAssessmentDataSchema,
+      req.body
+    );
+
+    // Convert clinical data to baseline format
+    const baseline_data = {
+      dateRecorded: validated_clinical_data.assessment_date,
+      notes: validated_clinical_data.assessor_notes,
+      // Store clinical data in JSON fields
+      vitalSigns: validated_clinical_data.clinical_measurements,
+      medications: validated_clinical_data.treatments?.medications,
+      // Store complex clinical data in chronicConditions field temporarily
+      chronicConditions: {
+        symptoms: validated_clinical_data.symptoms,
+        treatments: validated_clinical_data.treatments,
+        performance_status: validated_clinical_data.performance_status,
+        demographics: validated_clinical_data.demographics,
+        custom_fields: validated_clinical_data.custom_fields,
+      },
+    };
+
+    baseline = await createPatientBaseline({
+      teamId: user.team.id,
+      patientId,
+      createdBy: user.id,
+      ...baseline_data,
+    });
+  } else {
+    // Handle legacy baseline data structure
+    const validatedData = validateWithSchema(
+      createPatientBaselineSchema,
+      req.body
+    );
+
+    baseline = await createPatientBaseline({
+      teamId: user.team.id,
+      patientId,
+      createdBy: user.id,
+      ...validatedData,
+    });
+  }
 
   await sendAudit({
     action: 'patient_baseline.created',

@@ -1,6 +1,6 @@
 import { Error, Loading } from '@/components/shared';
 import { AccessControl } from '@/components/shared/AccessControl';
-import PatientBaseline from '@/components/patient/PatientBaseline';
+import PatientOverview from '@/components/patient/PatientOverview';
 import PatientTab from '@/components/patient/PatientTab';
 import env from '@/lib/env';
 import useTeam from 'hooks/useTeam';
@@ -10,7 +10,7 @@ import { useRouter } from 'next/router';
 import { useTranslation } from 'next-i18next';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 
-const PatientBaselinePage = () => {
+const PatientDetailPage = () => {
   const { t } = useTranslation('common');
   const router = useRouter();
   const { slug, patientId } = router.query as {
@@ -48,14 +48,9 @@ const PatientBaselinePage = () => {
   }
 
   return (
-    <AccessControl resource="team_patient_baseline" actions={['read']}>
-      <PatientTab
-        activeTab="baseline"
-        patient={patient}
-        teamSlug={slug}
-        heading="Baseline Data"
-      />
-      <PatientBaseline patient={patient} team={team} />
+    <AccessControl resource="team_patient" actions={['read']}>
+      <PatientTab activeTab="overview" patient={patient} teamSlug={slug} />
+      <PatientOverview patient={patient} />
     </AccessControl>
   );
 };
@@ -76,4 +71,4 @@ export async function getServerSideProps({
   };
 }
 
-export default PatientBaselinePage;
+export default PatientDetailPage;

@@ -15,6 +15,7 @@ import {
   getPatientBaselineSchema,
   updatePatientBaselineSchema,
   deletePatientBaselineSchema,
+  baselineAssessmentDataSchema,
   validateWithSchema,
 } from '@/lib/zod';
 
@@ -96,28 +97,62 @@ const handlePUT = async (req: NextApiRequest, res: NextApiResponse) => {
   }
 
   // Verify patient exists and belongs to team
-  const patient = await fetchPatientById(user.team.id, patientId);
+  await fetchPatientById(user.team.id, patientId);
 
   // Verify baseline exists
-  const existingBaseline = await fetchPatientBaselineById(
-    user.team.id,
-    patientId,
-    baselineId
-  );
+  await fetchPatientBaselineById(user.team.id, patientId, baselineId);
 
-  const validatedData = validateWithSchema(
-    updatePatientBaselineSchema,
-    req.body
-  );
+  // Check if the request contains new clinical data structure
+  const has_clinical_data =
+    req.body.symptoms ||
+    req.body.treatments ||
+    req.body.clinical_measurements ||
+    req.body.performance_status;
+
+  let update_data;
+
+  if (has_clinical_data) {
+    // Validate new clinical assessment data
+    const validated_clinical_data = validateWithSchema(
+      baselineAssessmentDataSchema,
+      req.body
+    );
+
+    // Convert clinical data to baseline format
+    update_data = {
+      dateRecorded: validated_clinical_data.assessment_date,
+      notes: validated_clinical_data.assessor_notes,
+      // Store clinical data in JSON fields
+      vitalSigns: validated_clinical_data.clinical_measurements,
+      medications: validated_clinical_data.treatments?.medications,
+      // Store complex clinical data in chronicConditions field temporarily
+      chronicConditions: {
+        symptoms: validated_clinical_data.symptoms,
+        treatments: validated_clinical_data.treatments,
+        performance_status: validated_clinical_data.performance_status,
+        demographics: validated_clinical_data.demographics,
+        custom_fields: validated_clinical_data.custom_fields,
+      },
+      updatedBy: user.id,
+    };
+  } else {
+    // Handle legacy baseline data structure
+    const validatedData = validateWithSchema(
+      updatePatientBaselineSchema,
+      req.body
+    );
+
+    update_data = {
+      ...validatedData,
+      updatedBy: user.id,
+    };
+  }
 
   const updatedBaseline = await updatePatientBaseline(
     user.team.id,
     patientId,
     baselineId,
-    {
-      ...validatedData,
-      updatedBy: user.id,
-    }
+    update_data
   );
 
   await sendAudit({
@@ -151,7 +186,7 @@ const handleDELETE = async (req: NextApiRequest, res: NextApiResponse) => {
   }
 
   // Verify patient exists and belongs to team
-  const patient = await fetchPatientById(user.team.id, patientId);
+  await fetchPatientById(user.team.id, patientId);
 
   // Verify baseline exists
   await fetchPatientBaselineById(user.team.id, patientId, baselineId);

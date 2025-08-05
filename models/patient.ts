@@ -58,7 +58,12 @@ export const fetchPatients = async (
   teamId: string,
   options?: FetchPatientsOptions
 ) => {
-  const { search, limit = 50, offset = 0, includeDeleted = false } = options || {};
+  const {
+    search,
+    limit = 50,
+    offset = 0,
+    includeDeleted = false,
+  } = options || {};
 
   const where = {
     teamId,
@@ -106,7 +111,11 @@ export const fetchPatients = async (
   };
 };
 
-export const fetchPatientById = async (teamId: string, patientId: string, includeDeleted = false) => {
+export const fetchPatientById = async (
+  teamId: string,
+  patientId: string,
+  includeDeleted = false
+) => {
   return await prisma.patient.findFirstOrThrow({
     where: {
       id: patientId,
@@ -173,9 +182,10 @@ export const softDeletePatient = async (
   params: SoftDeletePatientParams
 ) => {
   const { deletedBy, deletionReason, retentionUntil } = params;
-  
+
   const defaultRetentionYears = 7;
-  const calculatedRetentionUntil = retentionUntil || 
+  const calculatedRetentionUntil =
+    retentionUntil ||
     new Date(Date.now() + defaultRetentionYears * 365 * 24 * 60 * 60 * 1000);
 
   return await prisma.patient.update({
@@ -231,14 +241,13 @@ export const canHardDeletePatient = async (
   return new Date() >= patient.retentionUntil;
 };
 
-export const hardDeletePatient = async (
-  teamId: string,
-  patientId: string
-) => {
+export const hardDeletePatient = async (teamId: string, patientId: string) => {
   const canDelete = await canHardDeletePatient(teamId, patientId);
-  
+
   if (!canDelete) {
-    throw new Error('Patient retention period has not expired. Cannot permanently delete.');
+    throw new Error(
+      'Patient retention period has not expired. Cannot permanently delete.'
+    );
   }
 
   return await prisma.patient.delete({
@@ -250,7 +259,10 @@ export const hardDeletePatient = async (
 };
 
 // Get patient count for a team (for dashboard stats)
-export const getPatientCount = async (teamId: string, includeDeleted = false) => {
+export const getPatientCount = async (
+  teamId: string,
+  includeDeleted = false
+) => {
   return await prisma.patient.count({
     where: {
       teamId,

@@ -70,13 +70,18 @@ model User {
   invalid_login_attempts Int       @default(0)
   lockedAt               DateTime?
 
-  teamMembers     TeamMember[]
-  accounts        Account[]
-  sessions        Session[]
-  invitations     Invitation[]
-  createdPatients Patient[]    @relation("PatientCreator")
-  updatedPatients Patient[]    @relation("PatientUpdater")
-  deletedPatients Patient[]    @relation("PatientDeleter")
+  teamMembers              TeamMember[]
+  accounts                 Account[]
+  sessions                 Session[]
+  invitations              Invitation[]
+  createdPatients          Patient[]         @relation("PatientCreator")
+  updatedPatients          Patient[]         @relation("PatientUpdater")
+  deletedPatients          Patient[]         @relation("PatientDeleter")
+  createdPatientBaselines  PatientBaseline[] @relation("PatientBaselineCreator")
+  updatedPatientBaselines  PatientBaseline[] @relation("PatientBaselineUpdater")
+  deletedPatientBaselines  PatientBaseline[] @relation("PatientBaselineDeleter")
+  createdTeamFormConfigs   TeamFormConfig[]  @relation("TeamFormConfigCreator")
+  updatedTeamFormConfigs   TeamFormConfig[]  @relation("TeamFormConfigUpdater")
 }
 
 model Team {
@@ -94,6 +99,8 @@ model Team {
   invitations     Invitation[]
   apiKeys         ApiKey[]
   patients        Patient[]
+  patientBaselines PatientBaseline[]
+  formConfigs     TeamFormConfig[]
 
   @@index([billingId])
 }
@@ -175,14 +182,79 @@ model Patient {
   deletionReason  String?
   retentionUntil  DateTime?
 
-  team    Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  creator User @relation("PatientCreator", fields: [createdBy], references: [id])
-  updater User? @relation("PatientUpdater", fields: [updatedBy], references: [id])
-  deleter User? @relation("PatientDeleter", fields: [deletedBy], references: [id])
+  team      Team             @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  creator   User             @relation("PatientCreator", fields: [createdBy], references: [id])
+  updater   User?            @relation("PatientUpdater", fields: [updatedBy], references: [id])
+  deleter   User?            @relation("PatientDeleter", fields: [deletedBy], references: [id])
+  baselines PatientBaseline[]
 
   @@index([teamId])
   @@index([teamId, createdAt])
   @@index([teamId, deletedAt])
+}
+
+model PatientBaseline {
+  id              String   @id @default(uuid())
+  teamId          String
+  patientId       String
+  dateRecorded    DateTime
+  height          Float?   // in centimeters
+  weight          Float?   // in kilograms
+  bloodPressure   Json?    // {systolic: number, diastolic: number}
+  heartRate       Int?     // beats per minute
+  temperature     Float?   // in Celsius
+  oxygenSat       Int?     // percentage
+  bloodSugar      Float?   // mg/dL
+  notes           String?  @db.Text
+  vitalSigns      Json?    // flexible storage for additional vital signs
+  labResults      Json?    // flexible storage for lab test results
+  medications     Json?    // flexible storage for current medications
+  allergies       Json?    // flexible storage for known allergies
+  chronicConditions Json?  // flexible storage for chronic conditions
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  createdBy       String
+  updatedBy       String?
+  
+  // HIPAA-compliant soft delete fields
+  deletedAt       DateTime?
+  deletedBy       String?
+  deletionReason  String?
+  retentionUntil  DateTime?
+
+  team     Team  @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  patient  Patient @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  creator  User  @relation("PatientBaselineCreator", fields: [createdBy], references: [id])
+  updater  User? @relation("PatientBaselineUpdater", fields: [updatedBy], references: [id])
+  deleter  User? @relation("PatientBaselineDeleter", fields: [deletedBy], references: [id])
+
+  @@index([teamId])
+  @@index([patientId])
+  @@index([teamId, patientId])
+  @@index([teamId, dateRecorded])
+  @@index([teamId, patientId, dateRecorded])
+  @@index([teamId, deletedAt])
+  @@unique([teamId, patientId, dateRecorded])
+}
+
+model TeamFormConfig {
+  id            String   @id @default(uuid())
+  teamId        String
+  formType      String   // 'baseline_assessment', 'pro_questionnaire', etc.
+  config        Json     // Form configuration data
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  createdBy     String
+  updatedBy     String?
+
+  team     Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  creator  User @relation("TeamFormConfigCreator", fields: [createdBy], references: [id])
+  updater  User? @relation("TeamFormConfigUpdater", fields: [updatedBy], references: [id])
+
+  @@index([teamId])
+  @@index([teamId, formType])
+  @@unique([teamId, formType])
 }
 
 model Subscription {

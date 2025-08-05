@@ -29,6 +29,16 @@ import {
   mobile,
   gender,
   patientId,
+  baselineId,
+  height,
+  weight,
+  bloodPressure,
+  heartRate,
+  temperature,
+  oxygenSat,
+  bloodSugar,
+  baselineNotes,
+  dateRecorded,
 } from './primitives';
 
 export const createApiKeySchema = z.object({
@@ -198,4 +208,135 @@ export const deletePatientSchema = z.object({
 
 export const getPatientSchema = z.object({
   patientId,
+});
+
+// Patient Baseline schemas
+export const createPatientBaselineSchema = z.object({
+  dateRecorded,
+  height: height.optional(),
+  weight: weight.optional(),
+  bloodPressure: bloodPressure.optional(),
+  heartRate: heartRate.optional(),
+  temperature: temperature.optional(),
+  oxygenSat: oxygenSat.optional(),
+  bloodSugar: bloodSugar.optional(),
+  notes: baselineNotes.optional(),
+  vitalSigns: z.any().optional(),
+  labResults: z.any().optional(),
+  medications: z.any().optional(),
+  allergies: z.any().optional(),
+  chronicConditions: z.any().optional(),
+});
+
+export const updatePatientBaselineSchema = z.object({
+  height: height.optional(),
+  weight: weight.optional(),
+  bloodPressure: bloodPressure.optional(),
+  heartRate: heartRate.optional(),
+  temperature: temperature.optional(),
+  oxygenSat: oxygenSat.optional(),
+  bloodSugar: bloodSugar.optional(),
+  notes: baselineNotes.optional(),
+  vitalSigns: z.any().optional(),
+  labResults: z.any().optional(),
+  medications: z.any().optional(),
+  allergies: z.any().optional(),
+  chronicConditions: z.any().optional(),
+});
+
+export const getPatientBaselineSchema = z.object({
+  patientId,
+  baselineId,
+});
+
+export const deletePatientBaselineSchema = z.object({
+  patientId,
+  baselineId,
+  deletionReason: z.string().optional(),
+});
+
+// Clinical form validation schemas
+export const severityLevelSchema = z.enum([
+  'mild',
+  'moderate',
+  'severe',
+  'very_severe',
+]);
+
+export const symptomWithSeveritySchema = z.object({
+  present: z.boolean(),
+  severity: severityLevelSchema.optional(),
+});
+
+export const performanceStatusSchema = z.object({
+  scale_type: z.enum(['ecog', 'karnofsky', 'nyha']),
+  value: z.number().min(0).max(4),
+  notes: z.string().optional(),
+});
+
+export const treatmentInformationSchema = z.object({
+  line_of_treatment: z.array(z.string()).optional(),
+  details: z.string().optional(),
+  medications: z.array(z.string()).optional(),
+});
+
+export const clinicalMeasurementSchema = z.record(
+  z.string(),
+  z.union([z.number(), z.string()])
+);
+
+export const baselineAssessmentDataSchema = z
+  .object({
+    // Demographics
+    demographics: z.record(z.string(), z.any()).optional(),
+
+    // Symptoms with severity
+    symptoms: z.record(z.string(), symptomWithSeveritySchema).optional(),
+
+    // Treatment information
+    treatments: treatmentInformationSchema.optional(),
+
+    // Clinical measurements
+    clinical_measurements: clinicalMeasurementSchema.optional(),
+
+    // Performance status
+    performance_status: performanceStatusSchema.optional(),
+
+    // Custom fields
+    custom_fields: z.record(z.string(), z.any()).optional(),
+
+    // Assessment metadata
+    assessment_date: z.coerce.date(),
+    assessor_notes: z.string().optional(),
+  })
+  .refine(
+    (data) => {
+      // Cross-field validation: if symptom is present, severity should be provided if has_severity is true
+      if (data.symptoms) {
+        for (const [, symptom_data] of Object.entries(data.symptoms)) {
+          if (symptom_data.present && !symptom_data.severity) {
+            // This would normally check form config to see if severity is required
+            // For now, we'll make it optional but this is where the logic would go
+          }
+        }
+      }
+      return true;
+    },
+    {
+      message: 'Invalid symptom and severity combination',
+    }
+  );
+
+// Team form configuration schemas
+export const createTeamFormConfigSchema = z.object({
+  formType: z.string(),
+  config: z.any(), // We'll validate the specific config structure in the API
+});
+
+export const updateTeamFormConfigSchema = z.object({
+  config: z.any(),
+});
+
+export const resetTeamFormConfigSchema = z.object({
+  specialty: z.enum(['oncology', 'cardiology']),
 });

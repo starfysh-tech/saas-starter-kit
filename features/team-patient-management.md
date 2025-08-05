@@ -62,7 +62,7 @@ model Patient {
   updatedAt       DateTime @default(now())
   createdBy       String
   updatedBy       String?
-  
+
   // HIPAA-compliant soft delete fields
   deletedAt       DateTime?
   deletedBy       String?

@@ -1,4 +1,8 @@
-import { fetchPatientById, updatePatient, softDeletePatient } from 'models/patient';
+import {
+  fetchPatientById,
+  updatePatient,
+  softDeletePatient,
+} from 'models/patient';
 import { getCurrentUserWithTeam, throwIfNoTeamAccess } from 'models/team';
 import { throwIfNotAllowed } from 'models/user';
 import type { NextApiRequest, NextApiResponse } from 'next';
@@ -131,8 +135,9 @@ const handleDELETE = async (req: NextApiRequest, res: NextApiResponse) => {
     throw error;
   }
 
-  const deletionReason = req.body?.deletionReason || 'Patient record soft deleted';
-  
+  const deletionReason =
+    req.body?.deletionReason || 'Patient record soft deleted';
+
   await softDeletePatient(user.team.id, patientId, {
     deletedBy: user.id,
     deletionReason,

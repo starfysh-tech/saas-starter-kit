@@ -9,7 +9,10 @@ import {
   updatePatient,
   softDeletePatient,
 } from '../../../models/patient';
-import { getCurrentUserWithTeam, throwIfNoTeamAccess } from '../../../models/team';
+import {
+  getCurrentUserWithTeam,
+  throwIfNoTeamAccess,
+} from '../../../models/team';
 import { throwIfNotAllowed } from '../../../models/user';
 import { recordMetric } from '../../../lib/metrics';
 import env from '../../../lib/env';
@@ -474,10 +477,14 @@ describe('Patient Detail API', () => {
         'team-123',
         'patient-123'
       );
-      expect(mockSoftDeletePatient).toHaveBeenCalledWith('team-123', 'patient-123', {
-        deletedBy: 'user-123',
-        deletionReason: 'Patient record soft deleted',
-      });
+      expect(mockSoftDeletePatient).toHaveBeenCalledWith(
+        'team-123',
+        'patient-123',
+        {
+          deletedBy: 'user-123',
+          deletionReason: 'Patient record soft deleted',
+        }
+      );
       expect(mockSendAudit).toHaveBeenCalledWith({
         action: 'patient.soft_delete',
         crud: 'd',

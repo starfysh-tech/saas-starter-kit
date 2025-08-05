@@ -81,8 +81,8 @@ interface FormField {
   layout?: FieldLayout;
 }
 
-type FieldType = 
-  | 'text' 
+type FieldType =
+  | 'text'
   | 'textarea'
   | 'email'
   | 'phone'
@@ -98,6 +98,7 @@ type FieldType =
 ### Complex Field Type Configurations
 
 #### Checkbox Group with Severity
+
 ```json
 {
   "name": "gastrointestinal_symptoms",
@@ -135,6 +136,7 @@ type FieldType =
 ```
 
 #### Cascading Select
+
 ```json
 {
   "name": "line_of_treatment",
@@ -146,9 +148,9 @@ type FieldType =
       "name": "treatment_status",
       "label": "Treatment Status",
       "options": [
-        {"value": "front_line", "label": "Front-line"},
-        {"value": "relapsed_refractory", "label": "Relapsed / Refractory"},
-        {"value": "maintenance", "label": "Maintenance"}
+        { "value": "front_line", "label": "Front-line" },
+        { "value": "relapsed_refractory", "label": "Relapsed / Refractory" },
+        { "value": "maintenance", "label": "Maintenance" }
       ]
     },
     {
@@ -156,8 +158,8 @@ type FieldType =
       "label": "Current Status",
       "depends_on": "treatment_status",
       "options": [
-        {"value": "on_treatment", "label": "On Treatment"},
-        {"value": "off_treatment", "label": "Off Treatment"}
+        { "value": "on_treatment", "label": "On Treatment" },
+        { "value": "off_treatment", "label": "Off Treatment" }
       ]
     }
   ]
@@ -165,6 +167,7 @@ type FieldType =
 ```
 
 #### Conditional Field Display
+
 ```json
 {
   "name": "treatment_details",
@@ -216,6 +219,7 @@ export { CascadingSelect } from './CascadingSelect';
 ### Complex Field Components
 
 #### CheckboxGroupWithSeverity
+
 ```typescript
 interface CheckboxWithSeverityOption {
   value: string;
@@ -232,12 +236,15 @@ interface CheckboxWithSeverityOption {
 interface CheckboxGroupWithSeverityProps {
   field: FormField;
   value: Record<string, { selected: boolean; severity?: number }>;
-  onChange: (value: Record<string, { selected: boolean; severity?: number }>) => void;
+  onChange: (
+    value: Record<string, { selected: boolean; severity?: number }>
+  ) => void;
   error?: string;
 }
 ```
 
 #### CascadingSelect
+
 ```typescript
 interface CascadingSelectStep {
   name: string;
@@ -262,17 +269,17 @@ interface CascadingSelectProps {
 // lib/validation/templateValidator.ts
 export function generateZodSchema(template: FormTemplate): z.ZodSchema {
   const schemaFields: Record<string, z.ZodType> = {};
-  
-  template.fields.forEach(field => {
+
+  template.fields.forEach((field) => {
     schemaFields[field.name] = createFieldValidator(field);
   });
-  
+
   return z.object(schemaFields);
 }
 
 function createFieldValidator(field: FormField): z.ZodType {
   let validator: z.ZodType;
-  
+
   switch (field.type) {
     case 'text':
       validator = z.string();
@@ -283,34 +290,36 @@ function createFieldValidator(field: FormField): z.ZodType {
         validator = validator.max(field.validation.maxLength);
       }
       break;
-      
+
     case 'email':
       validator = z.string().email();
       break;
-      
+
     case 'phone':
       validator = z.string().regex(/^\(\d{3}\) \d{3}-\d{4}$/);
       break;
-      
+
     case 'checkbox_group_with_severity':
-      validator = z.record(z.object({
-        selected: z.boolean(),
-        severity: z.number().min(1).max(4).optional()
-      }));
+      validator = z.record(
+        z.object({
+          selected: z.boolean(),
+          severity: z.number().min(1).max(4).optional(),
+        })
+      );
       break;
-      
+
     case 'cascading_select':
       const stepValidators: Record<string, z.ZodType> = {};
-      field.subFields?.forEach(step => {
+      field.subFields?.forEach((step) => {
         stepValidators[step.name] = z.string();
       });
       validator = z.object(stepValidators);
       break;
-      
+
     default:
       validator = z.string();
   }
-  
+
   return field.required ? validator : validator.optional();
 }
 ```
@@ -324,7 +333,7 @@ function createFieldValidator(field: FormField): z.ZodType {
 // GET - List all templates
 // POST - Create new template (mQOL team only)
 
-// pages/api/admin/form-templates/[templateId].ts  
+// pages/api/admin/form-templates/[templateId].ts
 // GET - Get template by ID
 // PUT - Update template (mQOL team only)
 // DELETE - Delete template (mQOL team only)
@@ -338,30 +347,33 @@ function createFieldValidator(field: FormField): z.ZodType {
 
 ```typescript
 // pages/api/teams/[slug]/patients/index.ts
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
   if (req.method === 'GET') {
     // Return patients with form template info
     const patients = await getPatients(teamId);
     return res.json({ data: { patients } });
   }
-  
+
   if (req.method === 'POST') {
     // Get team's assigned form template
     const formAssignment = await getTeamFormAssignment(teamId);
     const template = await getFormTemplate(formAssignment.template_id);
-    
+
     // Validate against template schema
     const schema = generateZodSchema(template);
     const validatedData = schema.parse(req.body);
-    
+
     // Transform and store data
     const patient = await createPatient({
       ...validatedData,
       teamId,
       form_assignment_id: formAssignment.id,
-      createdBy: userId
+      createdBy: userId,
     });
-    
+
     return res.json({ data: { patient } });
   }
 }
@@ -378,32 +390,32 @@ export function transformFormDataForStorage(
   template: FormTemplate
 ): PatientCreateInput {
   const transformed: any = {};
-  
-  template.fields.forEach(field => {
+
+  template.fields.forEach((field) => {
     const value = formData[field.name];
-    
+
     switch (field.type) {
       case 'checkbox_group_with_severity':
         // Store as JSON: {"constipation": {"selected": true, "severity": 3}}
         transformed[field.name] = JSON.stringify(value);
         break;
-        
+
       case 'cascading_select':
         // Store as JSON: {"treatment_status": "front_line", "current_status": "on_treatment"}
         transformed[field.name] = JSON.stringify(value);
         break;
-        
+
       case 'text':
       case 'email':
       case 'phone':
         transformed[field.name] = value;
         break;
-        
+
       default:
         transformed[field.name] = value;
     }
   });
-  
+
   return transformed;
 }
 ```
@@ -441,7 +453,7 @@ INSERT INTO FormTemplate (name, category, config, created_by) VALUES (
         "validation": {"minLength": 2, "maxLength": 50}
       },
       {
-        "name": "lastName", 
+        "name": "lastName",
         "type": "text",
         "label": "Last Name",
         "required": true,
@@ -506,12 +518,14 @@ const formMetrics = {
 ## Security Considerations
 
 ### Template Validation
+
 - Validate JSON template structure before database insertion
 - Sanitize field names to prevent injection attacks
 - Limit template complexity (max fields, nesting depth)
 - Restrict template creation to mQOL team members only
 
-### Data Protection  
+### Data Protection
+
 - Maintain existing HIPAA compliance for form data
 - Ensure form_data JSONB column follows retention policies
 - Audit all template creation and assignment actions
@@ -520,56 +534,64 @@ const formMetrics = {
 ## Testing Strategy
 
 ### Unit Tests
+
 - Template validation logic
 - Form field component rendering
 - Data transformation functions
 - Zod schema generation
 
 ### Integration Tests
+
 - Template assignment API endpoints
 - Patient creation with templates
 - Form submission validation
 - Database schema migrations
 
 ### E2E Tests
+
 ```typescript
 // tests/e2e/dynamic-forms.spec.ts
 test('Clinical user can fill out dynamic patient form', async ({ page }) => {
   // Navigate to patient creation
   await page.goto('/teams/test-clinic/patients');
   await page.click('[data-testid="add-patient"]');
-  
+
   // Fill out cascading select
   await page.selectOption('[data-testid="treatment_status"]', 'front_line');
   await page.selectOption('[data-testid="current_status"]', 'on_treatment');
-  
+
   // Fill checkbox with severity
   await page.check('[data-testid="constipation"]');
   await page.click('[data-testid="constipation-severity-3"]');
-  
+
   // Submit form
   await page.click('[data-testid="submit"]');
-  
+
   // Verify patient created
-  await expect(page.locator('[data-testid="patient-list"]')).toContainText('John Doe');
+  await expect(page.locator('[data-testid="patient-list"]')).toContainText(
+    'John Doe'
+  );
 });
 ```
 
 ## Deployment Plan
 
 ### Database Migration
+
 1. Create new tables (FormTemplate, FormAssignment)
 2. Add form_assignment_id to Patient table
 3. Create default template and assignments
 4. Verify data integrity
 
 ### Code Deployment
+
 1. Deploy dynamic form components
 2. Update patient API endpoints
 3. Replace NewPatient with DynamicForm
 4. Monitor error rates and performance
 
 ### Rollback Strategy
+
 - Keep existing hardcoded components as backup
 - Feature flag to switch between old/new forms
 - Database rollback scripts for schema changes

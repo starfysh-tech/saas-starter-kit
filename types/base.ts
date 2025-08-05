@@ -59,7 +59,11 @@ export type AppEvent =
   | 'patient.created'
   | 'patient.removed'
   | 'patient.fetched'
-  | 'patient.updated';
+  | 'patient.updated'
+  | 'patient_baseline.created'
+  | 'patient_baseline.fetched'
+  | 'patient_baseline.updated'
+  | 'patient_baseline.archived';
 
 export type AUTH_PROVIDER =
   | 'github'

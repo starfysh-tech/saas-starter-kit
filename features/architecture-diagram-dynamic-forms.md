@@ -1,6 +1,7 @@
 # System Architecture Diagram: Dynamic Form Templates
 
 ## Overview
+
 This diagram shows the complete system architecture for the dynamic form template system using the hybrid EAV (Entity-Attribute-Value) storage approach.
 
 ## Database Layer Architecture
@@ -261,21 +262,25 @@ This diagram shows the complete system architecture for the dynamic form templat
 ## Key Architectural Benefits
 
 ### 1. Hybrid Storage Strategy
+
 - **Core fields** remain as typed columns for performance
 - **Dynamic fields** use EAV pattern for flexibility
 - **Materialized views** provide optimized analytics queries
 
 ### 2. Template Versioning
+
 - Each `FormAssignment` creates a versioned template instance
 - Patient records link to specific template versions via `form_assignment_id`
 - Data integrity maintained across template updates
 
 ### 3. Component Reusability
+
 - **Field type registry** enables extensible form field types
 - **Conditional logic engine** handles complex field dependencies
 - **Validation engine** generates runtime schemas from templates
 
 ### 4. Analytics-Ready Design
+
 - **Queryable structure** supports complex SQL analytics
 - **BI tool compatibility** through standard table relationships
 - **Performance optimization** via indexes and materialized views

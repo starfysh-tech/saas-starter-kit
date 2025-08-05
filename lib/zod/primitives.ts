@@ -306,3 +306,94 @@ export const patientId = z
     invalid_type_error: 'Patient ID must be a string',
   })
   .min(1, 'Patient ID is required');
+
+export const baselineId = z
+  .string({
+    required_error: 'Baseline ID is required',
+    invalid_type_error: 'Baseline ID must be a string',
+  })
+  .min(1, 'Baseline ID is required');
+
+// Baseline data validation primitives
+export const height = z
+  .number({
+    required_error: 'Height is required',
+    invalid_type_error: 'Height must be a number',
+  })
+  .positive('Height must be positive')
+  .max(300, 'Height must be less than 300 cm');
+
+export const weight = z
+  .number({
+    required_error: 'Weight is required',
+    invalid_type_error: 'Weight must be a number',
+  })
+  .positive('Weight must be positive')
+  .max(1000, 'Weight must be less than 1000 kg');
+
+export const bloodPressure = z.object({
+  systolic: z
+    .number({
+      required_error: 'Systolic pressure is required',
+      invalid_type_error: 'Systolic pressure must be a number',
+    })
+    .int('Systolic pressure must be an integer')
+    .min(50, 'Systolic pressure must be at least 50')
+    .max(300, 'Systolic pressure must be less than 300'),
+  diastolic: z
+    .number({
+      required_error: 'Diastolic pressure is required',
+      invalid_type_error: 'Diastolic pressure must be a number',
+    })
+    .int('Diastolic pressure must be an integer')
+    .min(30, 'Diastolic pressure must be at least 30')
+    .max(200, 'Diastolic pressure must be less than 200'),
+});
+
+export const heartRate = z
+  .number({
+    required_error: 'Heart rate is required',
+    invalid_type_error: 'Heart rate must be a number',
+  })
+  .int('Heart rate must be an integer')
+  .min(20, 'Heart rate must be at least 20')
+  .max(300, 'Heart rate must be less than 300');
+
+export const temperature = z
+  .number({
+    required_error: 'Temperature is required',
+    invalid_type_error: 'Temperature must be a number',
+  })
+  .min(30, 'Temperature must be at least 30°C')
+  .max(45, 'Temperature must be less than 45°C');
+
+export const oxygenSat = z
+  .number({
+    required_error: 'Oxygen saturation is required',
+    invalid_type_error: 'Oxygen saturation must be a number',
+  })
+  .int('Oxygen saturation must be an integer')
+  .min(0, 'Oxygen saturation must be at least 0%')
+  .max(100, 'Oxygen saturation must be at most 100%');
+
+export const bloodSugar = z
+  .number({
+    required_error: 'Blood sugar is required',
+    invalid_type_error: 'Blood sugar must be a number',
+  })
+  .positive('Blood sugar must be positive')
+  .max(1000, 'Blood sugar must be less than 1000 mg/dL');
+
+export const baselineNotes = z
+  .string({
+    invalid_type_error: 'Notes must be a string',
+  })
+  .max(2000, 'Notes should have at most 2000 characters');
+
+export const dateRecorded = z
+  .string({
+    required_error: 'Date recorded is required',
+    invalid_type_error: 'Date recorded must be a string',
+  })
+  .datetime('Date recorded must be a valid ISO datetime string')
+  .transform((str) => new Date(str));
