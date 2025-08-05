@@ -14,9 +14,11 @@ import env from '@/lib/env';
 import { Theme, applyTheme } from '@/lib/theme';
 import { Themer } from '@boxyhq/react-ui/shared';
 import { AccountLayout } from '@/components/layouts';
+import { useRouter } from 'next/router';
 
 function MyApp({ Component, pageProps }: AppPropsWithLayout) {
   const { session, ...props } = pageProps;
+  const router = useRouter();
 
   // Add mixpanel
   useEffect(() => {
@@ -62,6 +64,25 @@ function MyApp({ Component, pageProps }: AppPropsWithLayout) {
         >
           {getLayout(<Component {...props} />)}
         </Themer>
+        {process.env.NODE_ENV === 'development' && (
+          <>
+            {(() => {
+              try {
+                // eslint-disable-next-line @typescript-eslint/no-require-imports
+                const DebugPanel = require('@/components/debug/DebugPanel').default;
+                return (
+                  <DebugPanel
+                    component={Component}
+                    page_props={pageProps}
+                    router={router}
+                  />
+                );
+              } catch {
+                return null;
+              }
+            })()}
+          </>
+        )}
       </SessionProvider>
     </>
   );

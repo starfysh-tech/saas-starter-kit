@@ -23,6 +23,24 @@ const TeamDropdown = () => {
     (team) => team.slug === router.query.slug
   );
 
+  const shouldShowDropdown = (teams || []).length > 1;
+
+  // If user has only one team, show static team name without dropdown
+  if (!shouldShowDropdown) {
+    return (
+      <div className="w-full">
+        <div className="border border-gray-300 dark:border-gray-600 flex h-10 items-center px-4 rounded text-sm font-bold">
+          {currentTeam?.name ||
+            data?.user?.name?.substring(
+              0,
+              maxLengthPolicies.nameShortDisplay
+            )}
+        </div>
+      </div>
+    );
+  }
+
+  // Multiple teams - show full dropdown functionality
   const menus = [
     {
       id: 2,

@@ -1,3 +1,5 @@
+/* eslint-disable i18next/no-literal-string */
+/* eslint-disable react/no-unescaped-entities */
 import { useState, useEffect } from 'react';
 import { DebugData, DebugPanelProps } from './types';
 
@@ -35,12 +37,12 @@ const DebugPanel: React.FC<DebugPanelProps> = ({ component, page_props, router }
             first_paint: Math.round(nav_timing.responseEnd - nav_timing.fetchStart),
             dns_lookup: Math.round(nav_timing.domainLookupEnd - nav_timing.domainLookupStart),
             tcp_connect: Math.round(nav_timing.connectEnd - nav_timing.connectStart),
-          };
+          } as any;
         }
 
         // Memory info (Chrome only)
         if ('memory' in performance) {
-          data.performance.memory = {
+          (data.performance as any).memory = {
             used: Math.round((performance as any).memory.usedJSHeapSize / 1024 / 1024),
             total: Math.round((performance as any).memory.totalJSHeapSize / 1024 / 1024),
             limit: Math.round((performance as any).memory.jsHeapSizeLimit / 1024 / 1024),
@@ -48,7 +50,7 @@ const DebugPanel: React.FC<DebugPanelProps> = ({ component, page_props, router }
         }
 
         // Browser & device info
-        data.environment = {
+        (data.environment as any) = {
           ...data.environment,
           browser: navigator.userAgent.split(' ').pop() || 'Unknown',
           language: navigator.language,
@@ -64,10 +66,10 @@ const DebugPanel: React.FC<DebugPanelProps> = ({ component, page_props, router }
 
         // Storage info
         try {
-          data.environment.local_storage_keys = Object.keys(localStorage).length;
-          data.environment.session_storage_keys = Object.keys(sessionStorage).length;
-        } catch (e) {
-          data.environment.storage_access = 'blocked';
+          (data.environment as any).local_storage_keys = Object.keys(localStorage).length;
+          (data.environment as any).session_storage_keys = Object.keys(sessionStorage).length;
+        } catch {
+          (data.environment as any).storage_access = 'blocked';
         }
       }
 

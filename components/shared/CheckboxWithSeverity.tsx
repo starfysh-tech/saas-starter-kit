@@ -1,4 +1,5 @@
 /* eslint-disable i18next/no-literal-string */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useState } from 'react';
 import { Checkbox } from 'react-daisyui';
 

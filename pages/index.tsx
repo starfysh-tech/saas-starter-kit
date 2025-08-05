@@ -11,6 +11,7 @@ import PricingSection from '@/components/defaultLanding/PricingSection';
 import useTheme from 'hooks/useTheme';
 import env from '@/lib/env';
 import Head from 'next/head';
+import { getSession } from '@/lib/session';
 
 const Home: NextPageWithLayout = () => {
   const { toggleTheme, selectedTheme } = useTheme();
@@ -75,6 +76,19 @@ const Home: NextPageWithLayout = () => {
 export const getServerSideProps = async (
   context: GetServerSidePropsContext
 ) => {
+  // Check for existing authentication
+  const session = await getSession(context.req, context.res);
+  
+  // Redirect authenticated users to dashboard
+  if (session?.user) {
+    return {
+      redirect: {
+        destination: '/dashboard',
+        permanent: false,
+      },
+    };
+  }
+
   // Redirect to login page if landing page is disabled
   if (env.hideLandingPage) {
     return {

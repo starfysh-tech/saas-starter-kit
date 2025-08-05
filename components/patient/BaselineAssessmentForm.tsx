@@ -1,4 +1,5 @@
 /* eslint-disable i18next/no-literal-string */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useState, useEffect } from 'react';
 import { useFormik } from 'formik';
 import { Button } from 'react-daisyui';
@@ -262,7 +263,7 @@ const BaselineAssessmentForm: React.FC<BaselineAssessmentFormProps> = ({
                     { value: 'immunotherapy', label: 'Immunotherapy' },
                     { value: 'targeted_therapy', label: 'Targeted Therapy' },
                   ]}
-                  value={formik.values.treatments?.type || ''}
+                  value={(formik.values.treatments as any)?.type || ''}
                   onChange={(value) =>
                     formik.setFieldValue('treatments.type', value)
                   }
