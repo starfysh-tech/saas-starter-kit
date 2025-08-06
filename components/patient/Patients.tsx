@@ -127,7 +127,7 @@ const Patients = ({ team }: PatientsProps) => {
               </div>
 
               <Table
-                cols={['Name', 'Mobile', 'Gender', 'Created', 'Actions']}
+                cols={['Name', 'Contact', 'Status', 'Date of Onboard', 'Line of Treatment', 'Actions']}
                 body={patients.map((patient) => {
                   return {
                     id: patient.id,
@@ -141,13 +141,14 @@ const Patients = ({ team }: PatientsProps) => {
                         text: patient.mobile || 'N/A',
                       },
                       {
-                        text: patient.gender
-                          ? patient.gender.replace('_', ' ')
-                          : 'N/A',
+                        text: 'Active',
                       },
                       {
                         wrap: true,
                         text: new Date(patient.createdAt).toLocaleDateString(),
+                      },
+                      {
+                        text: 'Not Set',
                       },
                       {
                         buttons: [
