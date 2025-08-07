@@ -1,0 +1,21 @@
+flowchart TD
+ subgraph subGraph0["Daily Patient Intake Process"]
+        C3["Add Patient Form<br>Dynamic form renders based on template"]
+        C2["Navigate to Patient Portal"]
+        C1["Patient Check-in<br>• Appointment<br>• Registration<br>• Staff login"]
+  end
+ subgraph subGraph1["FORM INTERACTION"]
+        C7["4 Symptom Assessment (Complex)<br/>* Current Symptoms:<br/>* Fatigue [●●○○]<br/>* Night Sweats [ - - ]<br>* Weight Loss  [ - - ]"]
+        C6["3 Disease-Specific Fields<br/>* Lymphoma Subtype: [DLBCL ▼]"]
+        C5["2 Treatment History (Cascading)<br>* Treatment Status: [Front-line ▼]<br>* Current Status: [On Treatment ▼]"]
+        C4["1 Basic Demographics (Always First)<br>* First Name: [John]<br>* Last Name:  [Smith]<br>* Phone: [(555) 123-4567]<br>* Gender: (●) Male ( ) Female ( ) Other"]
+  end
+ subgraph subGraph2["FORM SUBMISSION"]
+        C8["1 Click [Create Patient] button<br>2 Client-side validation runs<br>3 Form data serialized to JSON<br>4 POST /api/teams/city-cancer-center/patients<br>5 Server validates against template schema<br>6 Success: Patient created, form resets<br>7 Error: Validation messages displayed"]
+  end
+    C1 --> C2
+    C2 --> C3
+    C4 --> C5
+    C5 --> C6
+    C6 --> C7
+    subGraph1 --> subGraph2

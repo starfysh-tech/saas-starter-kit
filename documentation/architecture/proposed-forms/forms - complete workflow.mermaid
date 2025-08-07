@@ -1,0 +1,27 @@
+graph LR
+    %% PHASE 1: TEMPLATE CREATION (mQOL Team)
+    subgraph p1["PHASE 1: TEMPLATE CREATION (mQOL Team)"]
+        A1["Requirements Gathering<br/>• Disease needs<br/>• Field types<br/>• Relationships"] --> A2["JSON Template Creation<br/>• Field types<br/>• Validation<br/>• Dependencies"] --> A3["Validation & Storage<br/>• Schema check<br/>• Database insert<br/>• Template ID"] --> A4["FormTemplate DB<br/>id: abc123...<br/>name: Lymphoma<br/>config: {...}"]
+    end
+
+    %% PHASE 2: TEMPLATE ASSIGNMENT (mQOL Team)
+    subgraph p2["PHASE 2: TEMPLATE ASSIGNMENT (mQOL Team)"]
+        B1["Team Selection<br/>• City Cancer<br/>• Center<br/>• Lymphoma focus"] --> B2["Version Creation<br/>• Template v1<br/>• Assignment ID<br/>• Versioning"] --> B3["Assignment Activation<br/>• Link team<br/>• Set active<br/>• Notify team"] --> B4["FormAssignment<br/>id: assign789...<br/>template_id<br/>team_id<br/>version: 1<br/>active: true"] --> B5["Team Gets New Form<br/>• Form UI update<br/>• Field changes<br/>• Staff training"]
+    end
+
+    %% PHASE 3: FORM USAGE (Clinical Staff)
+    subgraph p3["PHASE 3: FORM USAGE (Clinical Staff)"]
+        C1["Patient Arrives<br/>• Intake process<br/>• Staff login<br/>• Add patient"] --> C2["Dynamic Form Rendering<br/>• Template fetch<br/>• Field render<br/>• Conditional UI"] --> C3["Form Submit Validation<br/>• Field validation<br/>• Required checks<br/>• Type checking"]
+    end
+
+    %% PHASE 4: DATA TRANSFORMATION & STORAGE
+    subgraph p4["PHASE 4: DATA TRANSFORMATION & STORAGE"]
+        D1["Form Data Received<br/>• JSON payload<br/>• Field mapping<br/>• Type coercion"] --> D2["Data Transformation<br/>• Core vs Dynamic<br/>• EAV conversion<br/>• Version linking"] --> D3["Database Storage<br/>• Patient table<br/>• FieldValue tbl<br/>• Relationships"]
+    end
+
+    %% PHASE 5: DATA ANALYSIS & REPORTING
+    subgraph p5["PHASE 5: DATA ANALYSIS & REPORTING"]
+        E1["Analytics Queries<br/>• SQL joins<br/>• Aggregations<br/>• Time series"] --> E2["Materialized Views<br/>• PatientLymphoma<br/>• TreatmentStats<br/>• SymptomTrends"] --> E3["Business Intelligence<br/>• Tableau<br/>• PowerBI<br/>• Custom reports"]
+    end
+
+p1 --> p2 --> p3 --> p4 --> p5

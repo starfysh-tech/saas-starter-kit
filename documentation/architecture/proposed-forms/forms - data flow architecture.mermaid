@@ -1,0 +1,36 @@
+flowchart TD
+    subgraph TEMPLATE_CREATION["Template Creation"]
+        JSON_CONFIG["JSON Config File"] --> VALIDATE["validate"]
+    end
+
+    subgraph FORM_ASSIGNMENT["Form Assignment"]
+        FORM_TEMPLATE["FormTemplate Database"] --> ASSIGN["assign"]
+    end
+
+    subgraph FORM_USAGE["Form Usage"]
+        DYNAMIC_FORM["DynamicForm Component"]
+    end
+
+    subgraph DATA_TRANSFORMATION["Data Transformation"]
+        FORM_VALUES["Form Values (JSON)"] --> TRANSFORM["transform"]
+    end
+
+    subgraph STORAGE_SPLIT["Storage Split"]
+        CORE_FIELDS["Core Fields (Patient Table)<br />- firstName<br />- lastName<br />- mobile<br />- gender<br />- form_assignment_id"]
+        DYNAMIC_FIELDS["Dynamic Fields (PatientFieldValue)<br />- field_name<br />- field_value<br />- field_type<br />- form_assignment_id<br />- patient_id"]
+    end
+
+    subgraph ANALYTICS_LAYER["Analytics Layer"]
+        MATERIALIZED_VIEWS["Materialized Views<br />- PatientLymphoma<br />- TreatmentStatus<br />- SymptomTrends"]
+        SQL_QUERIES["SQL Queries<br />- Symptom Analysis<br />- Outcome Reports<br />- Clinical Stats"]
+        BI_TOOLS["BI Tools<br />- Tableau<br />- PowerBI<br />- Grafana"]
+    end
+
+    JSON_CONFIG --> FORM_TEMPLATE
+    FORM_TEMPLATE --> DYNAMIC_FORM
+    DYNAMIC_FORM --> FORM_VALUES
+    FORM_VALUES --> STORAGE_SPLIT
+    STORAGE_SPLIT --> ANALYTICS_LAYER
+
+    CORE_FIELDS -->|Fast queries<br />Standard indexes<br />BI tool compatible| ANALYTICS_LAYER
+    DYNAMIC_FIELDS -->|Rich analytics<br />EAV queries<br />Flexible schema| ANALYTICS_LAYER

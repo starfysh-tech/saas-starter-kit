@@ -1,0 +1,83 @@
+classDiagram
+    class FormTemplate {
+        +id (PK)
+        +name
+        +category
+        +description
+        +config (JSON)
+        +created_by (FK→User)
+        +created_at
+    }
+
+    class Team {
+        +id (PK)
+        +name
+        +slug
+        +created_at
+    }
+
+    class User {
+        +id (PK)
+        +name
+        +email
+        +created_at
+    }
+
+    class FormAssignment {
+        +id (PK)
+        +template_id (FK→FormTemplate)
+        +team_id (FK→Team)
+        +version
+        +assigned_by (FK→User)
+        +active
+        +created_at
+    }
+
+    class TeamMember {
+        +id (PK)
+        +team_id (FK→Team)
+        +user_id (FK→User)
+        +role
+    }
+
+    class Patient {
+        +id (PK)
+        +firstName
+        +lastName
+        +mobile
+        +gender
+        +form_assignment_id (FK→FormAssignment)
+        +team_id (FK→Team)
+        +created_by (FK→User)
+        +created_at
+    }
+
+    class PatientFieldValue {
+        +id (PK)
+        +patient_id (FK→Patient)
+        +field_name
+        +field_value
+        +field_type
+        +form_assignment_id (FK→FormAssignment)
+        +created_at
+    }
+
+    class PatientLymphomaView {
+        +patient_id
+        +firstName
+        +lastName
+        +lymphoma_subtype
+        +treatment_status
+        +current_status
+    }
+
+    FormTemplate "1" -- "1..*" FormAssignment
+    Team "1" -- "1..*" FormAssignment
+    User "1" -- "1..*" FormTemplate
+    User "1" -- "1..*" FormAssignment
+    Team "1" -- "1..*" TeamMember
+    User "1" -- "1..*" TeamMember
+    FormAssignment "1" -- "1..*" Patient
+    FormAssignment "1" -- "1..*" PatientFieldValue
+    Patient "1" -- "1..*" PatientFieldValue
+    Patient "1" -- "1" PatientLymphomaView

@@ -1,0 +1,42 @@
+flowchart TD
+    subgraph API_LAYER["API Layer"]
+        subgraph TEMPLATE_MANAGEMENT["Template Management APIs"]
+            GET_TEMPLATES["GET /api/admin/form-templates"]
+            POST_TEMPLATES["POST /api/admin/form-templates"]
+            PUT_TEMPLATE["PUT /api/admin/form-templates/[id]"]
+            DELETE_TEMPLATE["DELETE /api/admin/form-templates/[id]"]
+            POST_ASSIGNMENT["POST /api/teams/[slug]/form-assignment"]
+            GET_ASSIGNMENT["GET /api/teams/[slug]/form-assignment"]
+        end
+
+        subgraph TEMPLATE_SERVICE["Template Service"]
+            VALIDATE["validateTemplate()"]
+            CREATE["createTemplate()"]
+            ASSIGN["assignToTeam()"]
+            GET_TEAM["getTeamTemplate()"]
+        end
+
+        subgraph PATIENT_APIS["Patient Data APIs"]
+            GET_PATIENTS["GET /api/teams/[slug]/patients"]
+            POST_PATIENTS["POST /api/teams/[slug]/patients"]
+            PUT_PATIENT["PUT /api/teams/[slug]/patients/[id]"]
+            GET_PATIENT["GET /api/teams/[slug]/patients/[id]"]
+        end
+
+        subgraph DATA_TRANSFORMER["Data Transformer"]
+            TRANSFORM["transformForStorage()"]
+            SPLIT["splitCoreAndDynamic()"]
+            VALIDATE_TMPL["validateAgainstTemplate()"]
+            RECONSTRUCT["reconstructFormData()"]
+        end
+
+        subgraph VALIDATION_ENGINE["Validation Engine"]
+            SCHEMA_GEN["Schema Generator<br/>generateZodSchema()<br/>parseTemplate()"]
+            FIELD_VALIDATOR["Field Validator<br/>validateField()<br/>checkRequired()"]
+            TYPE_CHECKER["Type Checker<br/>checkFieldType()<br/>coerceValue()"]
+        end
+
+        TEMPLATE_MANAGEMENT --> TEMPLATE_SERVICE
+        PATIENT_APIS --> DATA_TRANSFORMER
+        DATA_TRANSFORMER --> VALIDATION_ENGINE
+    end

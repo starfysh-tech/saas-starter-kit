@@ -1,0 +1,18 @@
+graph TD
+    subgraph "mQOL TEAM WORKFLOW"
+        direction LR
+
+        subgraph step1["Step 1: Requirements Analysis"]
+            S1["Meet with clinical team (City Cancer Center)<br/>Identify disease-specific data needs<br/>Map current paper forms to digital fields<br/>Define field relationships and dependencies<br/>Specify validation rules and constraints"]
+        end
+
+        subgraph step2["Step 2: Template Development"]
+            S2["1 Copy existing JSON template<br/>2 Modify field definitions:<br/>* Add lymphoma_subtype select field<br/>* Configure treatment cascading fields<br/>* Set up symptom severity scales<br/>3 Define conditional logic:<br/>* Show treatment details when on_treatment<br/>* Hide severity when symptom not selected<br/>4 Set validation rules:<br/>* Required fields, format constraints"]
+        end
+
+        subgraph step3["Step 3: Template Testing & Deployment"]
+            S3["1 Validate JSON structure and syntax<br/>2 Test template with sample data<br/>3 Execute SQL: INSERT INTO FormTemplate (...)<br/>4 Verify template stored with ID: abc123-def456-ghi789<br/>5 Create assignment: INSERT INTO FormAssignment (...)<br/>6 Notify clinical team of new form availability"]
+        end
+
+        step1 --> step2 --> step3
+    end

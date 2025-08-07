@@ -1,0 +1,26 @@
+flowchart LR
+    subgraph FRONTEND_LAYER["Frontend Layer"]
+        subgraph FORM_COMPONENTS["Form Components"]
+            DYNAMIC_FORM["DynamicForm<br/>template: Template<br/>onSubmit()<br/>validation<br/>formik integration"]
+            FIELD_RENDERER["FieldRenderer<br/>renderField()<br/>handleConditional()<br/>validateField()"]
+        end
+
+        subgraph FIELD_REGISTRY["Field Type Registry"]
+            TEXT_INPUT["TextInput<br/>type: 'text'<br/>validation"]
+            PHONE_INPUT["PhoneInput<br/>type: 'phone'<br/>formatting"]
+            CHECKBOX_SEV["CheckboxGroupWithSeverity<br/>type: 'checkbox_severity'<br/>severity scales"]
+            EMAIL_INPUT["EmailInput<br/>type: 'email'<br/>email valid"]
+            DATE_PICKER["DatePicker<br/>type: 'date'<br/>date format"]
+            CASCADING["CascadingSelect<br/>type: 'cascading_select'<br/>dependent dropdowns"]
+        end
+
+        subgraph CONDITIONAL_LOGIC["Conditional Logic"]
+            COND_WRAPPER["ConditionalWrapper<br/>show_when rules<br/>hide_when rules"]
+            DEP_TRACKER["DependencyTracker<br/>field dependencies<br/>value watching"]
+            VIS_MANAGER["VisibilityManager<br/>show/hide fields<br/>conditional render"]
+        end
+
+        DYNAMIC_FORM --> FIELD_RENDERER
+        FIELD_RENDERER --> FIELD_REGISTRY
+        FIELD_RENDERER --> CONDITIONAL_LOGIC
+    end
