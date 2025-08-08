@@ -16,8 +16,8 @@ FIRST, you must read and analyze these documentation files to understand the cur
 
 **Framework Documentation** (read these for detailed guidance):
 
-- ai-dev-tasks/multi-pass-refinement-framework.md
-- ai-dev-tasks/iterative-feature-template.md
+- .agents/flows/multi-pass-refinement-framework.md
+- .agents/flows/iterative-feature-template.md
 
 **Architecture Documentation** (read all files in this directory):
 
